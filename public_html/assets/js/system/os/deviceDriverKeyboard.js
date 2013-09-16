@@ -7,9 +7,45 @@
 // Inherit from prototype DeviceDriver in deviceDriver.js
 DeviceDriverKeyboard.prototype = new DeviceDriver;
 
-// Constructor that as of right now does nothing...
-function DeviceDriverKeyboard() {
-    // More stuff will probably go here in the fiture...
+function DeviceDriverKeyboard() {};
+
+DeviceDriverKeyboard.prototype.keyCodeToAsciiMap = {
+    186: 59, // ;
+    187: 61, // =    
+    188: 44, // ,
+    189: 45, // -    
+    190: 46, // .
+    191: 47, // /
+    192: 96, // `    
+    219: 91, // [
+    220: 92, // \
+    221: 93, // ]
+    222: 39,  // '
+};
+
+DeviceDriverKeyboard.prototype.shiftedCharacterMap = {
+    '`': '~',
+    '0': ')',
+    '1': '!',
+    '2': '@',
+    '3': '#',
+    '4': '$',
+    '5': '%',
+    '6': '^',
+    '7': '&',
+    '8': '*',
+    '9': '(',
+    '-': '_',
+    '=': '+',
+    '[': '{',
+    ']': '}',
+    '\\': '|',
+    ';': ':',
+    "'": '"',
+    '"': "'",
+    ',': '<',
+    '.': '>',
+    '/': '?'
 };
 
 //
@@ -27,23 +63,34 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
     var keyCode = params[0];
     var isShifted = params[1];
     Kernel.trace("Key code:" + keyCode + " shifted:" + isShifted);
-    var chr = "";
 
-    // Check if the keyboard input is between A-Z and a-z and then check if the input is a 
-    // digit, space, backspace, or enter
-    if (((keyCode >= 65) && (keyCode <= 90)) || ((keyCode >= 97) && (keyCode <= 123))) {
-        // Assume it's lowercase and re-adjust to uppercase if necessary
-        chr = String.fromCharCode(keyCode + 32);
+    var isLetter = (keyCode >= 65) && (keyCode <= 90);
+    var isDigit = (keyCode >= 48) && (keyCode <= 57);
+    var isSpecialCharacter = ((keyCode >= 219) && (keyCode <= 222)) || ((keyCode >= 186) && (keyCode <= 192));
+    var isControlCharacter = keyCode === 13 || keyCode === 8 || keyCode === 32 || keyCode === 38 || keyCode === 40;
+    if (isLetter || isDigit || isSpecialCharacter || isControlCharacter) {          
+        // Convert the key code to ASCII if appropriate
+        keyCode = (keyCode in this.keyCodeToAsciiMap) ? this.keyCodeToAsciiMap[keyCode] : keyCode;
+            
+        var chr = String.fromCharCode(keyCode).toLowerCase();
+        
+        // Assume it's unshifted and shift if necessary  
         if (isShifted) {
-            chr = String.fromCharCode(keyCode);
+            if (isLetter) {
+                chr = chr.toUpperCase();
+            } else if (!isControlCharacter) {
+                chr = this.shiftedCharacterMap[chr];
+            }
         }
+        
         // TODO: Check for caps-lock and handle as shifted if so
-        Kernel.inputQueue.enqueue(chr);
-    } else if (((keyCode >= 48) && (keyCode <= 57)) || (keyCode === 32) 
-            || (keyCode === 13) || (keyCode === 8) || (keyCode === 38) 
-            || (keyCode === 40) || (keyCode === 186)) {
-        chr = String.fromCharCode(keyCode);
+        
+        // Replace conflicting keys if necessary
+        if (!isDigit) {
+            chr = (chr === "&") ? "UP" : chr;
+            chr = (chr === "(") ? "DOWN" : chr;  
+        }
+        
         Kernel.inputQueue.enqueue(chr);
     }
 };
-

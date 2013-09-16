@@ -62,7 +62,7 @@ Console.prototype.handleInput = function() {
             // Removes the last character from the screen and decreases the buffer by a character
             this.removeText(this.buffer.charAt(this.buffer.length - 1));
             this.buffer = this.buffer.substring(0, this.buffer.length - 1);
-        } else if ((chr === String.fromCharCode(38)) || (chr === String.fromCharCode(40))) {
+        } else if ((chr === "UP") || (chr === "DOWN")) {
             // Removes data currently in the buffer to replace it with previous command
             this.removeText(this.buffer);
             
@@ -133,8 +133,10 @@ Console.prototype.handleResponse = function(line) {
 
 // Advances the line and scrolls the screen if necessary
 Console.prototype.advanceLine = function() {
+    if (this.filters.length === 0 || (this.filters.length > 0 && this.xPosition > 0)) {
+        this.yPosition += this.fontSize + this.fontHeightMargin;
+    }
     this.xPosition = 0;
-    this.yPosition += this.fontSize + this.fontHeightMargin;
     this.handleScrolling();
 };
 
@@ -142,12 +144,12 @@ Console.prototype.advanceLine = function() {
 // that have been entered. 
 Console.prototype.handleScrolling = function () {
     // The max line length is the number of lines that can fit onto the canvas
-    var maxLineLength = Math.floor(Display.HEIGHT / (this.fontSize + this.fontHeightMargin)) + 1;
+    var maxLineLength = Math.floor(Display.HEIGHT / (this.fontSize + this.fontHeightMargin));
     
     // If the output history is longer than the number of lines that can fit onto the canvas
     if (this.outputHistory.length > maxLineLength) {
         // Reduce output history by the differential amount
-        this.outputHistory = this.outputHistory.slice(this.outputHistory.length - maxLineLength);
+        this.outputHistory = this.outputHistory.slice(this.outputHistory.length - maxLineLength - 1);
         
         // Clear the screen and reset the coordinates
         this.resetXY();

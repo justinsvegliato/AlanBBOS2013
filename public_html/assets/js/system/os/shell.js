@@ -2,8 +2,7 @@
  * The OS Shell - the "command line interface" (CLI) for the console.
  */
  
-// TODO: Fix the advance line in 'filter'
-// TODO: Help x2 -> trace on/off
+// TODO: Roto13 bug?
 
 // Creates the field members and initializes the shell
 function Shell() {
@@ -37,6 +36,7 @@ Shell.prototype.init = function() {
     shellCommand = new ShellCommand("help", "- Lists all available commands", function() {
         Kernel.stdIn.handleResponse("Commands:");
         Kernel.stdIn.advanceLine();
+        
         // Iterate through every available command
         for (var i = 0; i < Kernel.shell.commandList.length; i++) {
             // Construct and print the command entry in the help message
@@ -45,9 +45,7 @@ Shell.prototype.init = function() {
             var success = Kernel.stdIn.handleResponse("  " + command + " " + description);
 
             // Advance the line if the message was printed to the console
-            if (success) {
-                Kernel.stdIn.advanceLine();
-            }
+            Kernel.stdIn.advanceLine();
         }
     });
     this.commandList.push(shellCommand);
@@ -180,7 +178,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'filter' command
-    shellCommand = new ShellCommand("filter", "<regex> <function> - Filters function output", (function self(args) {
+    shellCommand = new ShellCommand("\\", "<regex> <function> - Filters function output", (function self(args) {
         if (args.length >= 2) {
             var input = "";
             for (var i = 1; i < args.length; i++) {
@@ -257,12 +255,12 @@ Shell.prototype.handleInput = function(buffer) {
 // Handles command recall allowing the user to traverse through previously entered commands
 Shell.prototype.traverseHistory = function(chr) {
     // If the up arrow key pressed, otherwise the down arrow was pressed
-    if (chr === String.fromCharCode(38)) {
+    if (chr === "UP") {
         this.inputHistory.backward();
     } else {
         this.inputHistory.forward();
     }
-    return this.inputHistory.getCommand();
+    return this.inputHistory.getInput();
 };
 
 // Handles the execution of the command as well as the state of the console
@@ -395,7 +393,7 @@ function InputHistory() {
         position = -1;
     };
 
-    this.getCommand = function() {
+    this.getInput = function() {
         return (position === -1) ? "" : history[position];
     };
 }

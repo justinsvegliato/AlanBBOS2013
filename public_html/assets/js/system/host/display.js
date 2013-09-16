@@ -12,7 +12,7 @@ Display.drawingContext = null;
 Display.FONT_FAMILY = "arial";
 Display.FONT_SIZE = 13;
 Display.FONT_HEIGHT_MARGIN = 4;
-Display.HEIGHT = 400;
+Display.HEIGHT = 420;
 Display.WIDTH = 515;
 
 // Creates the canvas by getting the canvas via the ID and the context

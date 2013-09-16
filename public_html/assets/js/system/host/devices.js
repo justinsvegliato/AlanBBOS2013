@@ -27,11 +27,13 @@ function hostClockPulse() {
 function hostEnableKeyboardInterrupt() {
     // Listen for key press (keydown, actually) events in the Document
     // and call the simulation processor, which will in turn call the 
-    // OS interrupt handler.
+    // OS interrupt handler
     document.addEventListener("keydown", hostOnKeypress, false);
 }
 
 function hostDisableKeyboardInterrupt() {
+    // Removes the listeners that listens for key presses
+//    $(document).keypress(hostOn)
     document.removeEventListener("keydown", hostOnKeypress, false);
 }
 
