@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+        <meta name="author" content="Justin Svegliato" />
+        <title>SvegOS v0.01</title>
+
+        <link href="assets/css/bootstrap.css" rel="stylesheet">
+        <link href="assets/css/style.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <script src="../../assets/js/html5shiv.js"></script>
+          <script src="../../assets/js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+        <div id="navigation" class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <span class="navbar-brand">SvegOS</span>
+                </div>
+                <div id="controls" class="btn-group nav navbar-form navbar-right">
+                    <button id="start" class="btn btn-success" tabindex="0">Start</button>
+                    <button id="halt" class="btn btn-danger" disabled="disabled">Halt</button>
+                    <button id="reset" class="btn btn-info" disabled="disabled">Reset</button>
+                </div>
+                <div id="statistics" class="btn-group nav navbar-form navbar-right">
+                    <button id="status" class="btn btn-danger" disabled="disabled"><span>Off</span></button>
+                    <button id="date-time" class="btn btn-default" disabled="disabled"><span>Unavailable</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="content" class="container">
+            <div class="row">
+                <div id="console" class="col-xs-7">
+                    <h3>Shell</h3>
+                    <div id="display-container" class="well well-sm">
+                        <canvas id="display" tabindex="1" width="515" height="445"></canvas>
+                    </div>
+                </div>
+
+                <div id="divLog" class="col-xs-5">
+                    <h3>Logs</h3>
+                    <div class="panel panel-default">
+                        <div id="log" class="panel-body"></div>
+                    </div>
+                </div>
+                <div id="divUserProgramInput" class="col-xs-5">
+                    <h3>Program</h3>
+                    <textarea id="taProgramInput" class="form-control" rows="8"></textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Necessary dependencies needed for all aspects of the application -->
+        <script src="assets/js/jquery.js"></script>
+        <script src="assets/js/moment.js"></script>
+        <script src="assets/js/bootstrap.js"></script>
+
+        <!-- Globals constants and variables. Must included be first. -->
+        <script type="text/javascript" src="assets/js/system/globals.js"></script>	
+
+        <!-- Utility classes -->
+        <script type="text/javascript" src="assets/js/system/utils.js"></script>
+
+        <!-- Host (Hardware Simulation) Routines -->
+        <script type="text/javascript" src="assets/js/system/host/display.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/log.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/taskBar.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/control.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/devices.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/cpu.js"></script>
+
+        <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
+        <script type="text/javascript" src="assets/js/system/os/interrupt.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/canvastext.js"></script>	
+        <script type="text/javascript" src="assets/js/system/os/console.js"></script>	
+        <script type="text/javascript" src="assets/js/system/os/deviceDriver.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/deviceDriverKeyboard.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/queue.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/shell.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/kernel.js"></script>
+
+        <!-- Other Routines -->
+        <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>
+    </body>
+</html>
