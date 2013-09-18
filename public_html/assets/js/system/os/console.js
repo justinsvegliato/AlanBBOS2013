@@ -98,7 +98,7 @@ Console.prototype.removeText = function(text) {
         this.xPosition = this.xPosition - offset;
 
         // Draw a rectangle over the last character in the buffer
-        Display.drawingContext.clearRect(this.xPosition, this.yPosition - this.fontSize, offset, this.fontSize * 2);
+        Display.drawingContext.clearRect(this.xPosition, this.yPosition - this.fontSize - 1, offset, this.fontSize * 2);
     }
 };
 

@@ -34,7 +34,7 @@ Kernel.bootstrap = function() {
     Kernel.trace("Loading underlying data structures");
     Kernel.interruptQueue = new Queue();
     Kernel.buffers = new Array();
-    Kernel.inputQueue = new Queue();
+    Kernel.inputQueue = _KernelInputQueue = new Queue();
     
     // Initialize the console
     Kernel.trace("Loading the console");
@@ -124,7 +124,7 @@ Kernel.disableInterrupts = function() {
 };
 
 // Handles all interrupts - this is the interrupt handler rourtine
-Kernel.handleInterupts = function(irq, params) {
+Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
     // Trace our entrance here so we can compute Interrupt Latency by analyzing the log file later on
     Kernel.trace("Handling IRQ~" + irq);
 

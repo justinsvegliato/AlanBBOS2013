@@ -29,3 +29,5 @@ var _SarcasticMode = false
 ;
 // For testing purposes...
 var _GLaDOS = null;
+var krnInterruptHandler = null;
+var _KernelInputQueue = null;
