@@ -98,7 +98,5 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
         }
         
         Kernel.inputQueue.enqueue(chr);
-    } else {
-        Kernel.trapError("An invalid key was entered");
     }
 };
