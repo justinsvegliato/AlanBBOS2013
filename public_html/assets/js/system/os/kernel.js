@@ -78,6 +78,8 @@ Kernel.shutdown = function() {
     // TODO: Check for running processes.  Alert if there are some, alert and stop.  Else...       
     Kernel.trace("Disabling the interrupts");
     Kernel.disableInterrupts();
+    clearInterval(_hardwareClockID);
+    
     // 
     // Unload the Device Drivers?
     // More?
