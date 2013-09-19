@@ -166,7 +166,6 @@ Shell.prototype.init = function() {
                 if (!components[i].match(/^[a-f0-9]+$/i)) {
                     return "Invalid character specified: " + components[i];
                 }
-                i++;
             }
             return "Loaded program";
         };
