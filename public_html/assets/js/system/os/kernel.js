@@ -140,7 +140,7 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             Kernel.keyboardDriver.isr(params);
             Kernel.stdIn.handleInput();
             break;
-        // Trop if the interrupt is not recognized
+        // Trap if the interrupt is not recognized
         default:
             Kernel.trapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
     }
