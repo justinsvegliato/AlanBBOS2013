@@ -73,7 +73,7 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
     var isDigit = (keyCode >= 48) && (keyCode <= 57);
     var isSpecialCharacter = ((keyCode >= 219) && (keyCode <= 222)) || ((keyCode >= 186) && (keyCode <= 192));
     var isControlCharacter = keyCode === 13 || keyCode === 8 || keyCode === 32 || keyCode === 38 || keyCode === 40;
-    if (isLetter || isDigit || isSpecialCharacter || isControlCharacter || isShifted) {          
+    if (isLetter || isDigit || isSpecialCharacter || isControlCharacter) {          
         // Convert the key code to ASCII if appropriate
         keyCode = (keyCode in this.keyCodeToAsciiMap) ? this.keyCodeToAsciiMap[keyCode] : keyCode;
             
