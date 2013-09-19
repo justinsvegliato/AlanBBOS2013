@@ -59,6 +59,7 @@ DeviceDriverKeyboard.prototype.driverEntry = function() {
 
 // The interupt service routine that handles user input
 DeviceDriverKeyboard.prototype.isr = function(params) {
+    // TODO: Check that they are valid and osTrapError if not.
     var keyCode = params[0];
     var isShifted = params[1];
     

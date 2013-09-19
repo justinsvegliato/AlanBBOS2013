@@ -162,11 +162,8 @@ Shell.prototype.init = function() {
             // Split the input space and interate through each command
             var components = program.split(" ");
             for (var i = 0; i < components.length; i++) {
-                // Print an error if the length is too long or if the instruction contains
-                // an invalid character
-                if (components[i].length > 2) {
-                    return "Instruction is too long: " + components[i];
-                } else if (!components[i].match(/^[a-f0-9]+$/i)) {
+                // Print an error if the instruction contains an invalid character (non-hexidecimal)
+                if (!components[i].match(/^[a-f0-9]+$/i)) {
                     return "Invalid character specified: " + components[i];
                 }
                 i++;
@@ -179,15 +176,29 @@ Shell.prototype.init = function() {
 
     // The 'filter' command
     shellCommand = new ShellCommand("\\", "<regex> <function> - Filters function output", (function self(args) {
+        // If all parameters were supplied, handle filter logic
         if (args.length >= 2) {
             var input = "";
+            // Essentially rip the command that the user wants to filter out of the 
+            // arguments list. For instance, if we have "\ x help:, the following code will
+            // set the input variable to "help". On the other hand, if we have "\x \x help",
+            // the following code will set the input variable to "\x help".
             for (var i = 1; i < args.length; i++) {
                 input += args[i] + " ";
             }
+            
+            // Parse the input again to retrieve the command being filtered and then get 
+            // the shell command as well
             var userCommand = Kernel.shell.parseInput(input);
             var shellCommand = Kernel.shell.getShellCommand(userCommand);
+            
+            // If the shell command was acutally valid, handle the filter logic
             if (shellCommand) {
+                // Add this filter to the kernel's filter variable
                 Kernel.stdIn.filters.push(new RegExp(args[0], "i"));
+                
+                // However, if the user command is also a filter, then we need to recurse
+                // to handle the additional filter, otherwise we execute the command
                 if (userCommand.getCommand() === "filter") {
                     args = input.trim().split(" ");
                     args.shift();
@@ -195,6 +206,9 @@ Shell.prototype.init = function() {
                 } else {
                     shellCommand(userCommand.getArguments());
                 }
+                
+                // Make sure to reset the filters after this process is complete so we don't
+                // unfortunately filter other input :)
                 Kernel.stdIn.filters = [];
             } else {
                 Kernel.stdIn.handleResponse("Invalid fuction");
@@ -362,23 +376,33 @@ function UserCommand(command, args) {
 // An interior class to represent and traverse the input history
 //
 function InputHistory() {
+    //
     // Properties
+    //
     var history = [];
     var position = -1;
-
+    
+    //
     // Methods
+    //
+    
+    // Iterates backward in time (this is recalling previous commands)
     this.backward = function() {
         if (position < history.length - 1) {
             position++;
         }
     };
 
+    // Iterates forward in time (this is recalling more recent commands)
     this.forward = function() {
         if (position > -1) {
             position--;
         }
     };
 
+    // Adds the the specified command to the input history; note that this doesn't merely have
+    // to be a valid command. Invalid inputs are also entered into the input history (as 
+    // is done on Linux).
     this.add = function(command) {
         var arguments = "";
         if (command.getArguments().length > 0) {
@@ -393,6 +417,7 @@ function InputHistory() {
         position = -1;
     };
 
+    // Retrieves the current command based on if forward or backward has been called previously
     this.getInput = function() {
         return (position === -1) ? "" : history[position];
     };
