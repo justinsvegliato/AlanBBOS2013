@@ -59,9 +59,14 @@ DeviceDriverKeyboard.prototype.driverEntry = function() {
 
 // The interupt service routine that handles user input
 DeviceDriverKeyboard.prototype.isr = function(params) {
-    // TODO: Check that they are valid and osTrapError if not.
     var keyCode = params[0];
     var isShifted = params[1];
+    
+    if (keyCode === null || isShifted === null || typeof keyCode !== "number" || typeof isShifted !== "boolean") {
+        Kernel.trapError("Invalid parameters passed to the keyboard ISR");
+        return;
+    }
+    
     Kernel.trace("Key code:" + keyCode + " shifted:" + isShifted);
 
     var isLetter = (keyCode >= 65) && (keyCode <= 90);
@@ -92,5 +97,7 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
         }
         
         Kernel.inputQueue.enqueue(chr);
+    } else {
+        Kernel.trapError("An invalid key was entered");    
     }
 };
