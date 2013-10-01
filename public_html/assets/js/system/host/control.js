@@ -20,9 +20,9 @@ function Control() {};
 // the taskbar to the inactive state
 Control.init = function() {
     // Create the canvas, clear the log, and change the taskbar
-    Display.createCanvas();
-    Log.clear();
-    TaskBar.enterInactiveState();
+    ConsoleDisplay.createCanvas();
+    LogDisplay.clear();
+    TaskBarDisplay.enterInactiveState();
 
     // Check for our testing and enrichment core
     if (typeof Glados === "function") {
@@ -33,11 +33,8 @@ Control.init = function() {
 
 // Handles logging messages
 Control.log = function(msg, source) {
-    // TODO: This taskbar date time update should be moved elsewhere
-    TaskBar.updateDateTime();
-    Log.record(_OSclock, source, msg);
+    LogDisplay.record(_OSclock, source, msg);
 };
-
 
 //
 // Control Events
@@ -48,14 +45,13 @@ Control.start = function() {
     Control.log("Starting bootstrap process", "host");
 
     // Disable the start button, and enable the handle/reset button
-    TaskBar.enterActiveState();
+    TaskBarDisplay.enterActiveState();
     
     // Send focus to the display (this will do more the in future)
-    Display.enterActiveState();
+    ConsoleDisplay.enterActiveState();
         
     // Initialize the CPU
     _CPU = new Cpu();
-    _CPU.init();
 
     _hardwareClockID = setInterval(hostClockPulse, CPU_CLOCK_INTERVAL);
     
@@ -70,10 +66,9 @@ Control.halt = function() {
 
     // Terminate the operating system and clear the hardware clock
     Kernel.shutdown();    
-    clearInterval(_hardwareClockID);
     
     // Enable the start button and disable the halt/restart buttons
-    TaskBar.enterInactiveState();
+    TaskBarDisplay.enterInactiveState();
 };
 
 // Handles all logic associated with the blue screen of death
@@ -81,12 +76,18 @@ Control.halt = function() {
 Control.bsod = function() {
     // Terminate the operating system and clear the hardware block 
     Kernel.shutdown();    
-    clearInterval(_hardwareClockID);
     
     // Adjusts the display (show bsod) and taskbar (disable all buttons but restart) accordingly
-    Display.enterErrorState();
-    TaskBar.enterErrorState();
+    ConsoleDisplay.enterErrorState();
+    TaskBarDisplay.enterErrorState();
 };
+
+Control.update = function() {
+    TaskBarDisplay.updateDateTime();
+    CpuDisplay.update(_CPU);
+    MemoryDisplay.update(Kernel.memoryManager);
+};
+
 
 // Handles all logic associated with resetting the operating system (just a restart)
 Control.reset = function() {

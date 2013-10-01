@@ -15,7 +15,7 @@ var APP_VERSION = "0.01";
 var CPU_CLOCK_INTERVAL = 50;
 var TIMER_IRQ = 0;
 var KEYBOARD_IRQ = 1;
-
+var SYSTEM_CALL_IRQ = 2;
 //
 // Global Variables
 //

@@ -23,6 +23,8 @@ Kernel.console = null;
 Kernel.stdIn = null;
 Kernel.stdOut = null;
 Kernel.shell = null;
+Kernel.memoryManager = null;
+Kernel.processManager = null;
 
 //
 // OS Startup and Shutdown Routines   
@@ -52,9 +54,8 @@ Kernel.bootstrap = function() {
     Kernel.keyboardDriver.driverEntry();
     Kernel.trace(Kernel.keyboardDriver.status);
     
-    //
-    // ... more?
-    //
+    Kernel.memoryManager = MemoryManager;
+    Kernel.processManager = ProcessManager;  
 
     // Enable the OS interrupts 
     // Note: This is not the CPU clock interrupt, as that is done in the host
@@ -107,6 +108,7 @@ Kernel.pulse = function() {
     } else {
         Kernel.trace("Idle");
     }
+    Control.update();
 };
 
 //
@@ -116,13 +118,11 @@ Kernel.pulse = function() {
 // Simply enables the interrupts
 Kernel.enableInterrupts = function() {
     hostEnableKeyboardInterrupt();
-    // TODO: More goes here
 };
 
 // Simply disables the interrupts
 Kernel.disableInterrupts = function() {
     hostDisableKeyboardInterrupt();
-    // TODO: More goes here
 };
 
 // Handles all interrupts - this is the interrupt handler rourtine
@@ -142,6 +142,10 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             Kernel.keyboardDriver.isr(params);
             Kernel.stdIn.handleInput();
             break;
+        case SYSTEM_CALL_IRQ:
+            Kernel.keyboardDriver.isr(params);
+            Kernel.stdIn.handleInput();
+            break;
         // Trap if the interrupt is not recognized
         default:
             Kernel.trapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -155,7 +159,7 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
 // The built-in TIMER (not clock) Interrupt Service Routine (as opposed to an ISR coming from a device driver)
 Kernel.timerISR = function() {
     // Check multiprogramming parameters and enforce quanta here - call the scheduler
-    // and  context switch here if necessary
+    // and context switch here if necessary
 };
 
 // Handles messages being outputted by the kernal

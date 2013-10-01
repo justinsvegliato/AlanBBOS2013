@@ -159,6 +159,7 @@ Shell.prototype.init = function() {
             if (program.length <= 0) {
                 return "No program was specified";
             }
+            
             // Split the input space and interate through each command
             var components = program.split(" ");
             for (var i = 0; i < components.length; i++) {
@@ -167,7 +168,11 @@ Shell.prototype.init = function() {
                     return "Invalid character specified: " + components[i];
                 }
             }
-            return "Loaded program";
+            
+            var pcb = ProcessManager.create();  
+            ProcessManager.load(pcb, program);
+            
+            return "[" + pcb.processId + "]";
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
@@ -221,6 +226,14 @@ Shell.prototype.init = function() {
     // The 'bsod' command
     shellCommand = new ShellCommand("bsod", "- Enables the blue screen of death", function() {
         Kernel.trapError("Enabled bsod via command");
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'run' command
+    shellCommand = new ShellCommand("run", "<pid> - Executes a program in memory", function(args) {
+        var pcb = ProcessManager.processControlBlocks[args[0]];
+        ProcessManager.execute(pcb);
+        Kernel.stdIn.handleResponse("Process complete");
     });
     this.commandList.push(shellCommand);
 

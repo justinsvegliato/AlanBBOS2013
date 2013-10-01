@@ -2,14 +2,14 @@
  * Singleton class that handles the log for the host
  */
 
-function Log() {};
+function LogDisplay() {};
 
 // The element that comprises the task bar - again, we have a variable to promote maintainability
-Log.element = "#log";
+LogDisplay.element = "#log";
 
 // The template of each entry in the log. Note that the "{#}" will be replaced using a
 // formatting function.
-Log.template = "<div class='entry'> \
+LogDisplay.template = "<div class='entry'> \
                     <div class='row'> \
                         <small class='text-muted pull-left'><strong class='date'>{0}</strong></small> \
                         <small class='text-muted pull-right'><strong class='clockPulse'>{1}</strong></small> \
@@ -21,12 +21,12 @@ Log.template = "<div class='entry'> \
                 </div>";
 
 // Clears the log...
-Log.clear = function() {
-    $(Log.element).empty();
+LogDisplay.clear = function() {
+    $(LogDisplay.element).empty();
 };
 
 // Records the entry to the log
-Log.record = function(clockPulse, source, message) {
+LogDisplay.record = function(clockPulse, source, message) {
     // Grabs the current time and formats it
     var now = moment().format("ddd, MMM Do YYYY, h:mm:ss a");
     
@@ -40,7 +40,7 @@ Log.record = function(clockPulse, source, message) {
         $(".clockPulse").first().html(clockPulse);  
     } else {
         // Add a new entry to the log
-        $(Log.element).prepend(Log.template.format(
+        $(LogDisplay.element).prepend(LogDisplay.template.format(
             now, 
             clockPulse, 
             !source ? "?" : source.toUpperCase(), 

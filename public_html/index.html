@@ -42,23 +42,60 @@
                     </div>
                 </div>
 
-                <div id="divLog" class="col-xs-5">
+                <div class="col-xs-5">
                     <h3>Logs</h3>
                     <div class="panel panel-default">
                         <div id="log" class="panel-body"></div>
                     </div>
                 </div>
-                <div id="divUserProgramInput" class="col-xs-5">
-                    <h3>Program</h3>
-                    <textarea id="taProgramInput" class="form-control" rows="8"></textarea>
+
+                <div id="cpu-display" class="col-xs-2">
+                    <h3>CPU</h3>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div id="pc-label" class="col-md-3">PC</div><div id="pc-value" class="col-md-offset-3 col-md-5">0</div> 
+                            <div id="acc-label" class="col-md-3">ACC</div><div id="acc-value" class="col-md-offset-3 col-md-5">0</div> 
+                            <div id="x-label" class="col-md-3">X</div><div id="x-value" class="col-md-offset-3 col-md-5">0</div> 
+                            <div id="y-label" class="col-md-3">Y</div><div id="y-value" class="col-md-offset-3 col-md-5">0</div> 
+                            <div id="z-label" class="col-md-3">Z</div><div id="z-value" class="col-md-offset-3 col-md-5">0</div>                            
+                        </div>
+                    </div>
                 </div>
 
+                <div class="col-xs-3">
+                    <h3>Program</h3>
+                    <textarea id="taProgramInput" class="form-control" rows="6"></textarea>
+                </div>
+
+                <div class="col-xs-5">
+                    <h3>Memory</h3>
+                    <div id="memory-display" class="panel panel-default">
+                        <table class="panel-body table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <td>Location</td>
+                                    <td>1</td>
+                                    <td>2</td>
+                                    <td>3</td>
+                                    <td>4</td>
+                                    <td>5</td>
+                                    <td>6</td>
+                                    <td>7</td>
+                                    <td>8</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Necessary dependencies needed for all aspects of the application -->
         <script src="assets/js/jquery.js"></script>
         <script src="assets/js/moment.js"></script>
+        <script src="assets/js/underscore.js"></script>
         <script src="assets/js/bootstrap.js"></script>
 
         <!-- Globals constants and variables. Must included be first. -->
@@ -66,14 +103,20 @@
 
         <!-- Utility classes -->
         <script type="text/javascript" src="assets/js/system/utils.js"></script>
+        <script type="text/javascript" src="assets/js/system/queue.js"></script>
 
         <!-- Host (Hardware Simulation) Routines -->
-        <script type="text/javascript" src="assets/js/system/host/display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/log.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/task-bar.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/console-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/log-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/taskbar-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/cpu-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/host/memory-display.js"></script>
         <script type="text/javascript" src="assets/js/system/host/control.js"></script>
         <script type="text/javascript" src="assets/js/system/host/devices.js"></script>
         <script type="text/javascript" src="assets/js/system/host/cpu.js"></script>
+
+        <script type="text/javascript" src="assets/js/system/host/memory.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/memory-manager.js"></script>
 
         <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
         <script type="text/javascript" src="assets/js/system/os/interrupt.js"></script>
@@ -81,11 +124,12 @@
         <script type="text/javascript" src="assets/js/system/os/console.js"></script>	
         <script type="text/javascript" src="assets/js/system/os/device-driver.js"></script>
         <script type="text/javascript" src="assets/js/system/os/device-driver-keyboard.js"></script>
-        <script type="text/javascript" src="assets/js/system/os/queue.js"></script>
         <script type="text/javascript" src="assets/js/system/os/shell.js"></script>
         <script type="text/javascript" src="assets/js/system/os/kernel.js"></script>
 
+        <script type="text/javascript" src="assets/js/system/os/process-manager.js"></script>
+
         <!-- Other Routines -->
-        <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>
+        <!--<script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>-->
     </body>
 </html>

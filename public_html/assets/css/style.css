@@ -116,7 +116,7 @@ body {
   background-color: transparent !important;
 }
 #log {
-    height: 193px;
+    height: 150px;
     overflow: auto;
 }
 div.entry {
@@ -139,6 +139,11 @@ canvas:focus {
     display: none;
 }
 #display-container {
-    height: 445px;
+    height: 600px;
     width: 515px;
+}
+#memory-display {
+    height: 165px;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
