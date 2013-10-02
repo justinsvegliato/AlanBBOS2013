@@ -167,16 +167,20 @@ Shell.prototype.init = function() {
                 if (!components[i].match(/^[a-f0-9]+$/i)) {
                     return "Invalid character specified: " + components[i];
                 }
+            }          
+            
+            var pcb = ProcessManager.load(program);
+            if (pcb) {
+                return "[" + pcb.processId + "]";
+            } else {
+                Kernel.handleInterupts(MEMORY_FAULT_IRQ, "Insufficient memory");
             }
             
-            var pcb = ProcessManager.create();  
-            ProcessManager.load(pcb, program);
-            
-            return "[" + pcb.processId + "]";
+
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
-    this.commandList.push(shellCommand);
+    this.commandList.push(shellCommand);    
 
     // The 'filter' command
     shellCommand = new ShellCommand("\\", "<regex> <function> - Filters function output", (function self(args) {
@@ -230,13 +234,16 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
     
     // The 'run' command
-    shellCommand = new ShellCommand("run", "<pid> - Executes a program in memory", function(args) {
+    shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
         var pcb = ProcessManager.processControlBlocks[args[0]];
-        ProcessManager.execute(pcb);
-        Kernel.stdIn.handleResponse("Process complete");
+        if (pcb) {
+            ProcessManager.execute(pcb);
+        } else {
+            Kernel.stdIn.handleResponse("Unknown process ID specified")
+        }
     });
     this.commandList.push(shellCommand);
-
+    
     this.putPrompt();
 };
 

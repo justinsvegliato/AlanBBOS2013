@@ -17,7 +17,6 @@ TaskBarDisplay.enterInactiveState = function() {
     $(TaskBarDisplay.statusElement).removeClass("btn-success").addClass("btn-danger");
     $(TaskBarDisplay.startElement).prop("disabled", false);
     $(TaskBarDisplay.haltElement).prop("disabled", true);
-    $(TaskBarDisplay.resetElement).prop("disabled", true);
     $(TaskBarDisplay.dateTimeElement).find("span").html("Unavailable").hide().fadeIn();
     $(TaskBarDisplay.startElement).focus();
     TaskBarDisplay.setStatus("Off");
@@ -29,7 +28,6 @@ TaskBarDisplay.enterErrorState = function() {
     $(TaskBarDisplay.statusElement).removeClass("btn-success").addClass("btn-danger");
     $(TaskBarDisplay.startElement).prop("disabled", true);
     $(TaskBarDisplay.haltElement).prop("disabled", true);
-    $(TaskBarDisplay.resetElement).prop("disabled", false);
     $(TaskBarDisplay.dateTimeElement).find("span").html("Unavailable").hide().fadeIn();
     $(TaskBarDisplay.resetElement).focus();
 };
@@ -40,7 +38,6 @@ TaskBarDisplay.enterActiveState = function() {
     $(TaskBarDisplay.statusElement).removeClass("btn-danger").addClass("btn-success");
     $(TaskBarDisplay.startElement).prop("disabled", true);
     $(TaskBarDisplay.haltElement).prop("disabled", false);
-    $(TaskBarDisplay.resetElement).prop("disabled", false);
     TaskBarDisplay.setStatus("On");
 };
 

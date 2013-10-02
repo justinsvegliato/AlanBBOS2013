@@ -135,16 +135,25 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
     switch (irq) {
         // The Kernel built-in routine for timers
         case TIMER_IRQ:
-            Kernel.timerISR();
+            Kernel.timerIsr();
             break;
         // The kernal-mode device driver
         case KEYBOARD_IRQ:
             Kernel.keyboardDriver.isr(params);
             Kernel.stdIn.handleInput();
             break;
+        case PROCESS_INITIATION_IRQ:
+            Kernel.processInitiationIsr(params);
+            break;
+        case PROCESS_TERMINATION_IRQ:
+            Kernel.processTerminationIsr(params);
+            break; 
+        case MEMORY_FAULT_IRQ:
+            Kernel.memoryFaultIsr(params);
+            break;
+        // The routine for a system call from a user program
         case SYSTEM_CALL_IRQ:
-            Kernel.keyboardDriver.isr(params);
-            Kernel.stdIn.handleInput();
+            Kernel.systemCallIsr(params);
             break;
         // Trap if the interrupt is not recognized
         default:
@@ -157,9 +166,35 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
 //
 
 // The built-in TIMER (not clock) Interrupt Service Routine (as opposed to an ISR coming from a device driver)
-Kernel.timerISR = function() {
+Kernel.timerIsr = function() {
     // Check multiprogramming parameters and enforce quanta here - call the scheduler
     // and context switch here if necessary
+};
+
+Kernel.processInitiationIsr = function(pcb) {
+    _CPU.start(pcb);
+};
+
+Kernel.processTerminationIsr = function(pcb) {
+    _CPU.stop();
+    ProcessManager.unload(pcb);
+};
+
+Kernel.memoryFaultIsr = function(message) {
+    Kernel.console.handleResponse(message);
+};
+
+Kernel.systemCallIsr = function(register) {
+    var xRegister = register[0];
+    var yRegister = register[1];
+    if (xRegister === 1) {
+        Kernel.console.putText(yRegister.toString());
+    } else {
+        var byte = null;
+        while ((byte = parseInt(MemoryManager.read(yRegister), 16)) !== "00") {
+            Kernel.console.putText(byte);
+        }
+    }
 };
 
 // Handles messages being outputted by the kernal

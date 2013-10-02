@@ -16,6 +16,11 @@ var CPU_CLOCK_INTERVAL = 50;
 var TIMER_IRQ = 0;
 var KEYBOARD_IRQ = 1;
 var SYSTEM_CALL_IRQ = 2;
+var PROCESS_INITIATION_IRQ = 3;
+var PROCESS_TERMINATION_IRQ = 4;
+var MEMORY_FAULT_IRQ = 5;
+
+
 //
 // Global Variables
 //
