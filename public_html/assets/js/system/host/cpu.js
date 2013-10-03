@@ -45,10 +45,12 @@ Cpu.prototype.cycle = function() {
     var operation = Cpu.operationMap[this.instructionRegister];
     
     if (operation) {
-        operation(this);
-    }
-    
-    this.currentProcess.update(this.programCounter, this.accumulator, this.xRegister, this.yRegister, this.zFlag);
+        operation(this);    
+        
+        if (this.currentProcess) {
+            this.currentProcess.update(this.programCounter, this.instructionRegister, this.accumulator, this.xRegister, this.yRegister, this.zFlag);
+        }
+    }     
 };
 
 Cpu.ldaImmediateOperation = function(cpu) {

@@ -139,11 +139,11 @@ canvas:focus {
     display: none;
 }
 #display-container {
-    height: 600px;
+    height: 535px;
     width: 515px;
 }
 #memory-display {
-    height: 165px;
+    height: 265px;
     overflow-x: hidden;
     overflow-y: scroll;
 }

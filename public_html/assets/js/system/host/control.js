@@ -84,6 +84,7 @@ Control.bsod = function() {
 
 Control.update = function() {
     TaskBarDisplay.updateDateTime();
+    ProcessDisplay.update(_CPU);
     CpuDisplay.update(_CPU);
     MemoryDisplay.update(Kernel.memoryManager);
 };

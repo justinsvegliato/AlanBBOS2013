@@ -30,7 +30,8 @@ ProcessManager.execute = function(pcb) {
 function ProcessControlBlock() {
     this.processId = ProcessControlBlock.lastProcessId++;
         
-    this.programCounter = null;
+    this.programCounter = 0;
+    this.instructionRegister = 0;
     this.accumulator = 0;
     this.xRegister = 0;
     this.yRegister = 0;
@@ -40,8 +41,9 @@ function ProcessControlBlock() {
     this.limit = null;
 }
 
-ProcessControlBlock.update = function(programCounter, accumulator, xRegister, yRegister, zFlag) {
+ProcessControlBlock.prototype.update = function(programCounter, instructionRegister, accumulator, xRegister, yRegister, zFlag) {
     this.programCounter = programCounter;
+    this.instructionRegister = instructionRegister;
     this.accumulator = accumulator;
     this.xRegister = xRegister;
     this.yRegister = yRegister;

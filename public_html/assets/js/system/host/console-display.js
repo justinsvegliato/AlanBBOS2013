@@ -12,7 +12,7 @@ ConsoleDisplay.drawingContext = null;
 ConsoleDisplay.FONT_FAMILY = "arial";
 ConsoleDisplay.FONT_SIZE = 13;
 ConsoleDisplay.FONT_HEIGHT_MARGIN = 4;
-ConsoleDisplay.HEIGHT = 420;
+ConsoleDisplay.HEIGHT = 505;
 ConsoleDisplay.WIDTH = 515;
 
 // Creates the canvas by getting the canvas via the ID and the context
