@@ -86,9 +86,22 @@ Control.update = function() {
     TaskBarDisplay.updateDateTime();
     ProcessDisplay.update(_CPU);
     CpuDisplay.update(_CPU);
-    MemoryDisplay.update(Kernel.memoryManager);
+    MemoryDisplay.update(Kernel.memoryManager, _CPU);  
 };
 
+Control.enterStepMode = function() {
+    TaskBarDisplay.startStepMode();
+    Kernel.handleInterupts(STEP_MODE_IRQ);
+};
+
+Control.exitStepMode = function() {
+    TaskBarDisplay.exitStepMode();
+    Kernel.handleInterupts(STEP_MODE_IRQ);
+};
+
+Control.step = function() {
+    Kernel.handleInterupts(STEP_IRQ);
+};
 
 // Handles all logic associated with resetting the operating system (just a restart)
 Control.reset = function() {
@@ -97,15 +110,30 @@ Control.reset = function() {
 
 // Attaches functions to the three buttons in the taskbar and initializes the console
 $(document).ready(function() {
-    $("#start").click(function() {
-        Control.start(this);
+    $(TaskBarDisplay.startStopElement).click(function() {
+        if (TaskBarDisplay.startStopElement.hasClass("btn-success")) {
+            Control.start(this);
+        } else {
+            Control.halt(this);
+        }
     });
-    $("#halt").click(function() {
-        Control.halt();
-    });
-    $("#reset").click(function() {
+    
+    $(TaskBarDisplay.resetElement).click(function() {
         Control.reset();
     });
+    
+    $(TaskBarDisplay.startStepModeButton).click(function() {
+        if (TaskBarDisplay.startStepModeButton.hasClass("btn-success")) {
+            Control.enterStepMode();
+        } else {
+            Control.exitStepMode();
+        }
+    });
+    
+    $(TaskBarDisplay.stepButton).click(function() {
+       Control.step(); 
+    });
+    
     $(".btn-group, #content").hide().fadeIn();
     Control.init();
 });

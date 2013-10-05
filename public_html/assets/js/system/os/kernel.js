@@ -26,6 +26,8 @@ Kernel.shell = null;
 Kernel.memoryManager = null;
 Kernel.processManager = null;
 
+Kernel.isStepModeActivated = null;
+
 //
 // OS Startup and Shutdown Routines   
 //
@@ -65,12 +67,16 @@ Kernel.bootstrap = function() {
     // Launch the shell
     Kernel.trace("Initializing the shell");
     Kernel.shell = new Shell();
-
+    
+    Kernel.isStepModeActivated = false;
+    
     // Initiate testing if available
     if (_GLaDOS) {
         Kernel.trace("Initializing testing hook");
         _GLaDOS.afterStartup();
     }
+    
+    Control.update();
 };
 
 // Handles logic associated with terminating the system
@@ -103,13 +109,13 @@ Kernel.pulse = function() {
         // TODO: Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
         var interrupt = Kernel.interruptQueue.dequeue();
         Kernel.handleInterupts(interrupt.irq, interrupt.params);
-    } else if (_CPU.isExecuting) {
-        _CPU.cycle();
+        Control.update();
+    } else if (_CPU.isExecuting && !Kernel.isStepModeActivated) {
+        _CPU.cycle();             
+        Control.update();
     } else {
         Kernel.trace("Idle");
-    }   
-    
-    Control.update();
+    } 
 };
 
 //
@@ -148,13 +154,19 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             break;
         case PROCESS_TERMINATION_IRQ:
             Kernel.processTerminationIsr(params);
-            break; 
+            break;            
         case MEMORY_FAULT_IRQ:
             Kernel.memoryFaultIsr(params);
             break;
         // The routine for a system call from a user program
         case SYSTEM_CALL_IRQ:
             Kernel.systemCallIsr(params);
+            break;
+        case STEP_IRQ:
+            Kernel.stepIsr();
+            break;
+        case STEP_MODE_IRQ:
+            Kernel.stepModeIsr();
             break;
         // Trap if the interrupt is not recognized
         default:
@@ -192,10 +204,20 @@ Kernel.systemCallIsr = function(register) {
         Kernel.console.putText(yRegister.toString());
     } else {
         var byte = null;
-        while ((byte = parseInt(MemoryManager.read(yRegister), 16)) !== "00") {
-            Kernel.console.putText(byte);
+        var memoryLocation = yRegister;
+        while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== "00") {
+            Kernel.console.putText(String.fromCharCode(byte));
         }
     }
+};
+
+Kernel.stepIsr = function() {
+    _CPU.cycle(); 
+    Control.update();
+};
+
+Kernel.stepModeIsr = function() {
+    Kernel.isStepModeActivated = !Kernel.isStepModeActivated;
 };
 
 // Handles messages being outputted by the kernal

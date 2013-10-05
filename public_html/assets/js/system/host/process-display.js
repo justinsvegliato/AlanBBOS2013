@@ -12,7 +12,7 @@ ProcessDisplay.update = function(cpu) {
     if (cpu.currentProcess !== null) {
         ProcessDisplay.processId.html(cpu.currentProcess.processId);
         ProcessDisplay.programCounterValue.html(cpu.currentProcess.programCounter);
-        ProcessDisplay.instructionRegisterValue.html(cpu.currentProcess.instructionRegister.toUpperCase());
+        ProcessDisplay.instructionRegisterValue.html(cpu.currentProcess.instructionRegister.toString().toUpperCase());
         ProcessDisplay.accumulatorValue.html(cpu.currentProcess.accumulator);
         ProcessDisplay.xRegisterValue.html(cpu.currentProcess.xRegister);
         ProcessDisplay.yRegisterValue.html(cpu.currentProcess.yRegister);

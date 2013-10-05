@@ -5,7 +5,7 @@
 function LogDisplay() {};
 
 // The element that comprises the task bar - again, we have a variable to promote maintainability
-LogDisplay.element = "#log";
+LogDisplay.element = $("#log");
 
 // The template of each entry in the log. Note that the "{#}" will be replaced using a
 // formatting function.
@@ -22,7 +22,7 @@ LogDisplay.template = "<div class='entry'> \
 
 // Clears the log...
 LogDisplay.clear = function() {
-    $(LogDisplay.element).empty();
+    LogDisplay.element.empty();
 };
 
 // Records the entry to the log
@@ -40,7 +40,7 @@ LogDisplay.record = function(clockPulse, source, message) {
         $(".clockPulse").first().html(clockPulse);  
     } else {
         // Add a new entry to the log
-        $(LogDisplay.element).prepend(LogDisplay.template.format(
+        LogDisplay.element.prepend(LogDisplay.template.format(
             now, 
             clockPulse, 
             !source ? "?" : source.toUpperCase(), 

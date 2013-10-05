@@ -23,15 +23,19 @@
                 </div>
 
                 <div id="controls" class="btn-group nav navbar-form navbar-right">
-                    <button id="start" class="btn btn-success" tabindex="0">Start</button>
-                    <button id="halt" class="btn btn-danger" disabled="disabled">Halt</button>
-                    <button id="reset" class="btn btn-info">Reset</button>
-                </div>
+                    <button id="start-stop" class="btn btn-success" tabindex="0"><span id="start-stop-icon" class="glyphicon glyphicon-play"></span></button>
+                    <button id="reset" class="btn btn-info"><span class="glyphicon glyphicon-refresh"></span></button>
+                </div>              
 
-                <div id="statistics" class="btn-group nav navbar-form navbar-right">
-                    <button id="status" class="btn btn-danger" disabled="disabled"><span>Off</span></button>
-                    <button id="date-time" class="btn btn-default" disabled="disabled"><span>Unavailable</span></button>
+                <div id="stepper-control-mode" class="btn-group nav navbar-form navbar-right">
+                    <button id="step-mode" class="btn btn-success" disabled="disabled">Start Step Mode</button>
+                    <button id="step" class="btn btn-primary" disabled="disabled"><span class="glyphicon glyphicon-chevron-right"></span></button>
                 </div>
+                
+                <div id="statistics" class="btn-group nav navbar-form navbar-right">
+                    <button id="status" class="btn btn-danger" ><span>Off</span></button>
+                    <button id="date-time" class="btn btn-default" disabled="disabled"><span>Unavailable</span></button>
+                </div>               
             </div>
         </div>       
 
@@ -55,38 +59,19 @@
                     <div class="row">
                         <ul class="nav nav-tabs nav-justified" data-tabs="tabs">
                             <li class="active"><a data-toggle="tab" href="#execution">Execution</a></li>
-                            <li><a data-toggle="tab" href="#storage">Storage</a></li>
+                            <li><a data-toggle="tab" href="#analysis">Analysis</a></li>
                         </ul>
 
                         <div class="tab-content">                            
-                            <div class="tab-pane fade in active" id="execution">  
-                                <div class="row">
-                                    <div id="cpu-display" class="col-xs-5">
-                                        <h3>CPU</h3>
-                                        <div class="panel panel-default">
-                                            <div class="panel-body">
-                                                <div id="pc-label" class="col-md-3">PC</div><div id="pc-value" class="col-md-offset-3 col-md-5">0</div> 
-                                                <div id="acc-label" class="col-md-3">ACC</div><div id="acc-value" class="col-md-offset-3 col-md-5">0</div> 
-                                                <div id="x-label" class="col-md-3">X</div><div id="x-value" class="col-md-offset-3 col-md-5">0</div> 
-                                                <div id="y-label" class="col-md-3">Y</div><div id="y-value" class="col-md-offset-3 col-md-5">0</div> 
-                                                <div id="z-label" class="col-md-3">Z</div><div id="z-value" class="col-md-offset-3 col-md-5">0</div>                            
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-xs-7">
-                                        <h3>Program</h3>
-                                        <textarea id="taProgramInput" class="form-control" rows="6"></textarea>
-                                    </div>
-                                </div>
+                            <div class="tab-pane fade in active" id="execution">                                
                                 <div class="row">
                                     <div class="col-xs-12">
-                                        <div class="panel panel-success">
+                                        <div class="panel panel-default">
                                             <div class="panel-heading">
-                                                <h3 class="panel-title">Active Process Content Block</h3>
+                                                <h3 class="panel-title">Process Results</h3>
                                             </div>
 
-                                            <table class="panel-body table table-striped">
+                                            <table class="table table-striped">
                                                 <thead>
                                                     <tr>
                                                         <td>PID</td>
@@ -112,33 +97,77 @@
                                             </table>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="tab-pane fade" id="storage">
+                                </div>   
+                                
                                 <div class="row">
                                     <div class="col-xs-12">
-                                        <h3>Memory</h3>
-                                        <div id="memory-display" class="panel panel-default">
-                                            <table class="panel-body table table-condensed table-striped">
+                                        <textarea id="taProgramInput" class="well well-sm form-control" placeholder="Type assembly instructions here..."></textarea>
+                                    </div>
+                                </div>                           
+                            </div>
+
+                            <div class="tab-pane fade" id="analysis">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h3 class="panel-title">Memory</h3>
+                                            </div>
+
+                                            <div id="memory-display">
+                                                <table class="table table-condensed table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>Row</td>
+                                                            <td>1</td>
+                                                            <td>2</td>
+                                                            <td>3</td>
+                                                            <td>4</td>
+                                                            <td>5</td>
+                                                            <td>6</td>
+                                                            <td>7</td>
+                                                            <td>8</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div id="cpu-display" class="col-xs-12">
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h3 class="panel-title">CPU</h3>
+                                            </div>
+
+                                            <table class="table table-striped">
                                                 <thead>
                                                     <tr>
-                                                        <td>Location</td>
-                                                        <td>1</td>
-                                                        <td>2</td>
-                                                        <td>3</td>
-                                                        <td>4</td>
-                                                        <td>5</td>
-                                                        <td>6</td>
-                                                        <td>7</td>
-                                                        <td>8</td>
+                                                        <td>PC</td>
+                                                        <td>IR</td>
+                                                        <td>ACC</td>
+                                                        <td>X</td>
+                                                        <td>Y</td>
+                                                        <td>Z</td>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    <tr>
+                                                        <td id="pc-value">0</td>
+                                                        <td id="ir-value">0</td>
+                                                        <td id="acc-value">0</td>
+                                                        <td id="x-value">0</td>
+                                                        <td id="y-value">0</td>
+                                                        <td id="z-value">0</td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div>
-                                    </div>
+                                    </div>                                   
                                 </div>
                             </div>
                         </div>
