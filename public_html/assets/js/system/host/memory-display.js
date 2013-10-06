@@ -2,7 +2,7 @@ function MemoryDisplay() {};
 
 MemoryDisplay.memoryDisplay = $("#memory-display");
 MemoryDisplay.memoryDisplayTable = $("#memory-display table tbody");
-MemoryDisplay.row = "<tr>{0}</tr>";
+MemoryDisplay.row = "<tr{0}>{1}</tr>";
 MemoryDisplay.cell = "<td id='{0}'>{1}</td>";
 
 MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
@@ -22,7 +22,9 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
                 cells += MemoryDisplay.cell.format("memory-cell-" + cellId, cellData);
             }
 
-            var row = MemoryDisplay.row.format(cells);
+            var attribute = (locationNumber === 0) ? " class='warning' " : "";
+            var row = MemoryDisplay.row.format(attribute, cells);
+            
             MemoryDisplay.memoryDisplayTable.append(row);
         }
     }
@@ -30,7 +32,7 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
     if (cpu.instructionRegister) {     
         var memoryLocationOffset = cpu.operationMap[cpu.instructionRegister].argumentLength + 1;
         for (var i = cpu.programCounter - memoryLocationOffset; i < cpu.programCounter; i++) {
-            $("#memory-cell-" + i).addClass('highlighted-location');
+            $("#memory-cell-" + i).addClass("highlighted-location");
         }
         
         if (!isStepModeActivated) {

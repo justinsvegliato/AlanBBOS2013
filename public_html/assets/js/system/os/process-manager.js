@@ -36,6 +36,8 @@ function ProcessControlBlock() {
     this.xRegister = 0;
     this.yRegister = 0;
     this.zFlag = 0;
+    
+    this.output = "";
        
     this.base = null;
     this.limit = null;

@@ -27,9 +27,23 @@ MemoryManager.deallocate = function(pcb) {
 };
 
 MemoryManager.write = function(data, location, pcb) {
-    MemoryManager.memory.words[location] = new Word(data);
+    var base = (typeof pcb === 'undefined') ? 0 : pcb.base;
+    var limit = (typeof pcb === 'undefined') ? MemoryManager.MEMORY_SIZE - 1 : pcb.limit;
+    
+    if (!(location >= base && location <= limit)) {
+        Kernel.handleInterupts(MEMORY_FAULT_IRQ, pcb);
+    } else {    
+        MemoryManager.memory.words[location] = new Word(data);
+    }
 };
 
 MemoryManager.read = function(location, pcb) {
-    return MemoryManager.memory.words[location].data;
+    var base = (typeof pcb === 'undefined') ? 0 : pcb.base;
+    var limit = (typeof pcb === 'undefined') ? MemoryManager.MEMORY_SIZE - 1 : pcb.limit;
+    
+    if (!(location >= base && location <= limit)) {
+        Kernel.handleInterupts(MEMORY_FAULT_IRQ, pcb);
+    } else {
+        return MemoryManager.memory.words[location].data;
+    }
 };

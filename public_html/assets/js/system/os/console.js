@@ -108,6 +108,12 @@ Console.prototype.handleRequest = function(line) {
     return true;
 };
 
+Console.prototype.handleProcessOutput = function(line) {
+    this.outputHistory.push(Kernel.shell.promptStr + line);
+    this.advanceLine();
+    this.putText(Kernel.shell.promptStr);
+};
+
 // Checks if the response, i.e., the data returned from the execution of a command, is valid
 Console.prototype.isValid = function(line) {
     // Iterate through the filters specified by the 'filter' command to determine

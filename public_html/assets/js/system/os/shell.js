@@ -50,7 +50,6 @@ Shell.prototype.init = function() {
     shellCommand = new ShellCommand("shutdown", "- Shuts down SvegOS", function() {
         Kernel.stdIn.handleResponse("Shutting down...");
         Kernel.shutdown();
-        // TODO: Stop the final prompt from being displayed
     });
     this.commandList.push(shellCommand);
 
@@ -85,12 +84,8 @@ Shell.prototype.init = function() {
             var setting = args[0];
             switch (setting) {
                 case "on":
-                    if (_Trace && _SarcasticMode) {
-                        Kernel.stdIn.handleResponse("Trace is already on, dumbass");
-                    } else {
-                        _Trace = true;
-                        Kernel.stdIn.handleResponse("Activated trace");
-                    }
+                    _Trace = true;
+                    Kernel.stdIn.handleResponse("Activated trace");
                     break;
                 case "off":
                     _Trace = false;
@@ -161,13 +156,13 @@ Shell.prototype.init = function() {
             for (var i = 0; i < components.length; i++) {
                 // Print an error if the instruction contains an invalid character (non-hexidecimal)
                 if (!components[i].match(/^[a-f0-9]+$/i)) {
-                    return "Invalid character specified: " + components[i];
+                    return "Invalid character: " + components[i];
                 }
             }          
             
             var pcb = ProcessManager.load(program);
             if (pcb) {
-                return "[" + pcb.processId + "]";
+                return "Process ID: " + pcb.processId + "";
             } else {
                 Kernel.handleInterupts(MEMORY_FAULT_IRQ, "Insufficient memory");
             }
@@ -235,7 +230,7 @@ Shell.prototype.init = function() {
         if (pcb) {
             ProcessManager.execute(pcb);
         } else {
-            Kernel.stdIn.handleResponse("Unknown process ID specified")
+            Kernel.stdIn.handleResponse("Unrecognized process ID");
         }
     });
     this.commandList.push(shellCommand);

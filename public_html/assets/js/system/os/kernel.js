@@ -173,8 +173,10 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             break;
         // Trap if the interrupt is not recognized
         default:
-            Kernel.trapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
+            Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
     }
+    
+    Control.update();
 };
 
 //
@@ -194,29 +196,40 @@ Kernel.processInitiationIsr = function(pcb) {
 Kernel.processTerminationIsr = function(pcb) {
     _CPU.stop();
     ProcessManager.unload(pcb);
+    Kernel.console.handleProcessOutput(pcb.output);
 };
 
-Kernel.memoryFaultIsr = function(message) {
+Kernel.memoryFaultIsr = function(pcb) {
+    _CPU.stop();
+    ProcessManager.unload(pcb);  
+    
+    var message = "Memory access error from process " + pcb.processId;
     Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);
+    
+    Kernel.trace(message);     
 };
 
-Kernel.systemCallIsr = function(register) {
-    var xRegister = register[0];
-    var yRegister = register[1];
+Kernel.systemCallIsr = function(params) {
+    var xRegister = params[0];
+    var yRegister = params[1];
+    var pcb = params[2];
     if (xRegister === 1) {
         Kernel.console.putText(yRegister.toString());
+        pcb.output += yRegister.toString();
     } else {
         var byte = null;
         var memoryLocation = yRegister;
         while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== 0) {
             Kernel.console.putText(String.fromCharCode(byte));
+            pcb.output += String.fromCharCode(byte);
         }
     }
 };
 
 Kernel.stepIsr = function() {
     _CPU.cycle(); 
-    Control.update();
 };
 
 Kernel.stepModeIsr = function() {
@@ -224,9 +237,17 @@ Kernel.stepModeIsr = function() {
 };
 
 Kernel.processFaultIsr = function(params) {
-    Kernel.trace(params);
+    var message = params[0];
+    var pcb = params[1];
+    
     _CPU.stop();
     ProcessManager.unload(pcb);
+    
+    Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);  
+    
+    Kernel.trace(message);
 };
 
 // Handles messages being outputted by the kernal

@@ -139,12 +139,13 @@ canvas:focus {
     overflow-y: scroll;
 }
 .tab-content {
-    margin-top:20px;
+    margin-top: 20px;
 }
 #taProgramInput {
-    height:169px;
+    height: 169px;
 }
 .highlighted-location {
     font-weight: bolder;
-    color: #5cb85c;
+    color: #b31b1b;
+    text-shadow: #737072 0.075em 0.075em 0.1em;
 }

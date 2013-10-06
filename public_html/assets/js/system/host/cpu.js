@@ -38,7 +38,7 @@ Cpu.prototype.reset = function() {
 Cpu.prototype.cycle = function() {
     Kernel.trace("CPU cycle");
 
-    this.instructionRegister = MemoryManager.read(this.programCounter++).toLowerCase();
+    this.instructionRegister = MemoryManager.read(this.programCounter++, this.currentProcess).toLowerCase();
 
     this.operation = Cpu.prototype.operationMap[this.instructionRegister];
 
@@ -48,8 +48,7 @@ Cpu.prototype.cycle = function() {
             this.currentProcess.update(this.programCounter, this.instructionRegister, this.accumulator, this.xRegister, this.yRegister, this.zFlag);
         }
     } else {
-        Kernel.handleInterupts(PROCESS_FAULT_IRQ, "Unrecognized instruction: " + this.instructionRegister);
-        this.reset();
+        this.throwError("Unrecognized instruction: " + this.instructionRegister);
     }
 };
 
@@ -130,9 +129,9 @@ Cpu.prototype.incOperation.argumentLength = 2;
 
 Cpu.prototype.sysOperation = function() {
     if (this.xRegister === 1 || this.xRegister === 2) {
-        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [this.xRegister, this.yRegister]);
+        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [this.xRegister, this.yRegister, this.currentProcess]);
     } else {
-        Kernel.trace("Invalid parameter for system call");
+        this.throwError("Invalid parameter for system call");
     }
 };
 Cpu.prototype.sysOperation.argumentLength = 0;
@@ -149,11 +148,16 @@ Cpu.prototype.readMemoryParameter = function() {
 };
 
 Cpu.prototype.readFromMemory = function(memoryLocation) {
-    return parseInt(MemoryManager.read(memoryLocation, this.currentProcess), 16);
+    return parseInt(MemoryManager.read(memoryLocation + this.currentProcess.base, this.currentProcess), 16);
 };
 
 Cpu.prototype.writeToMemory = function(value, memoryLocation) {
-    MemoryManager.write(value.toString(16), memoryLocation, this.currentProcess);
+    MemoryManager.write(value.toString(16), memoryLocation + this.currentProcess.base, this.currentProcess);
+};
+
+Cpu.prototype.throwError = function(message) { 
+    Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, this.currentProcess]);
+    this.reset();  
 };
 
 Cpu.prototype.operationMap = {
