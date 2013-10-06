@@ -86,7 +86,7 @@ Control.update = function() {
     TaskBarDisplay.updateDateTime();
     ProcessDisplay.update(_CPU);
     CpuDisplay.update(_CPU);
-    MemoryDisplay.update(Kernel.memoryManager, _CPU);  
+    MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
 };
 
 Control.enterStepMode = function() {

@@ -5,25 +5,7 @@ MemoryDisplay.memoryDisplayTable = $("#memory-display table tbody");
 MemoryDisplay.row = "<tr>{0}</tr>";
 MemoryDisplay.cell = "<td id='{0}'>{1}</td>";
 
-MemoryDisplay.highlightedLocation = null;
-
-MemoryDisplay.instructionParameterMap = {
-    "a9": 1,
-    "ad": 2,
-    "8d": 2,
-    "a2": 1,
-    "ae": 2,
-    "a0": 1,
-    "ac": 2,
-    "00": 0,
-    "ea": 0,
-    "ec": 2,
-    "d0": 1,
-    "ee": 2,
-    "ff": 0
-};
-
-MemoryDisplay.update = function(memoryManager, cpu) {
+MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
     MemoryDisplay.memoryDisplayTable.empty();
     for (var blockNumber = 0; blockNumber < memoryManager.NUMBER_OF_BLOCKS; blockNumber++) {
         var blockOffset = blockNumber * 256;
@@ -45,10 +27,21 @@ MemoryDisplay.update = function(memoryManager, cpu) {
         }
     }
     
-    if (cpu.isExecuting) {     
-        var memoryLocationOffset = MemoryDisplay.instructionParameterMap[cpu.instructionRegister] + 1;
+    if (cpu.instructionRegister) {     
+        var memoryLocationOffset = cpu.operationMap[cpu.instructionRegister].argumentLength + 1;
         for (var i = cpu.programCounter - memoryLocationOffset; i < cpu.programCounter; i++) {
             $("#memory-cell-" + i).addClass('highlighted-location');
         }
+        
+        if (!isStepModeActivated) {
+            MemoryDisplay.memoryDisplay.scrollTop(
+                $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+            );
+        } else {
+            MemoryDisplay.memoryDisplay.animate({
+                scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+            });
+        }
+
     }
 };

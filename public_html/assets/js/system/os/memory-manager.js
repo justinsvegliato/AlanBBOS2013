@@ -26,10 +26,10 @@ MemoryManager.deallocate = function(pcb) {
     pcb.limit = null;
 };
 
-MemoryManager.write = function(data, location) {
+MemoryManager.write = function(data, location, pcb) {
     MemoryManager.memory.words[location] = new Word(data);
 };
 
-MemoryManager.read = function(location) {
+MemoryManager.read = function(location, pcb) {
     return MemoryManager.memory.words[location].data;
 };

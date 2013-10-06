@@ -1,16 +1,12 @@
 /**  
  * The OS Shell - the "command line interface" (CLI) for the console.
  */
- 
-// TODO: Roto13 bug?
 
 // Creates the field members and initializes the shell
 function Shell() {
     // Properties
     this.promptStr = ">";
     this.commandList = [];
-    this.curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
-    this.apologies = "[sorry]";
     this.inputHistory = new InputHistory();
 
     this.init();
@@ -42,7 +38,7 @@ Shell.prototype.init = function() {
             // Construct and print the command entry in the help message
             var command = Kernel.shell.commandList[i].getCommand();
             var description = Kernel.shell.commandList[i].getDescription();
-            var success = Kernel.stdIn.handleResponse("  " + command + " " + description);
+            Kernel.stdIn.handleResponse("  " + command + " " + description);
 
             // Advance the line if the message was printed to the console
             Kernel.stdIn.advanceLine();
@@ -144,7 +140,7 @@ Shell.prototype.init = function() {
     // The 'status' command
     shellCommand = new ShellCommand("status", "<string> - Sets a status message", function(args) {
         if (args.length > 0) {
-            TaskBar.setStatus(args[0]);
+            TaskBarDisplay.setStatus(args[0]);
         } else {
             Kernel.stdIn.handleResponse("Usage: status <string>");
         }
@@ -270,14 +266,10 @@ Shell.prototype.handleInput = function(buffer) {
         if (fn) {
             this.execute(fn, args);
         } else {
-            // Check for curses and apologies before declaring the command invalid
-            if (this.curses.indexOf("[" + rot13(args) + "]") >= 0) {
-                this.execute(shellCurse);
-            } else if (this.apologies.indexOf("[" + args + "]") >= 0) {
-                this.execute(shellApology);
-            } else {
-                this.execute(shellInvalidCommand);
-            }
+            Kernel.stdIn.advanceLine();
+            Kernel.stdIn.handleResponse("Invalid Command. Type 'help' to see all commands.");
+            Kernel.stdIn.advanceLine();
+            this.putPrompt();
         }      
     } else {
         Kernel.stdIn.advanceLine();
@@ -440,32 +432,4 @@ function InputHistory() {
     this.getInput = function() {
         return (position === -1) ? "" : history[position];
     };
-}
-
-//
-// Shell Command Functions. Again, not part of Shell() class per se, just called from there.
-//
-
-function shellInvalidCommand() {
-    Kernel.stdIn.handleResponse("Invalid Command. Type 'help' to see all commands.");
-    if (_SarcasticMode) {
-        Kernel.stdIn.advanceLine();
-        Kernel.stdIn.handleResponse("Duh. Go back to your Speak & Spell.");
-    }
-}
-
-function shellCurse() {
-    Kernel.stdIn.handleResponse("Oh, so that's how it's going to be, eh? Fine.");
-    Kernel.stdIn.advanceLine();
-    Kernel.stdIn.handleResponse("Bitch.");
-    _SarcasticMode = true;
-}
-
-function shellApology() {
-    if (_SarcasticMode) {
-        Kernel.stdIn.handleResponse("Okay. I forgive you. This time.");
-        _SarcasticMode = false;
-    } else {
-        Kernel.stdIn.handleResponse("For what?");
-    }
 }

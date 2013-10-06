@@ -168,6 +168,9 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
         case STEP_MODE_IRQ:
             Kernel.stepModeIsr();
             break;
+        case PROCESS_FAULT_IRQ:
+            Kernel.processFaultIsr(params);
+            break;
         // Trap if the interrupt is not recognized
         default:
             Kernel.trapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -205,7 +208,7 @@ Kernel.systemCallIsr = function(register) {
     } else {
         var byte = null;
         var memoryLocation = yRegister;
-        while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== "00") {
+        while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== 0) {
             Kernel.console.putText(String.fromCharCode(byte));
         }
     }
@@ -218,6 +221,12 @@ Kernel.stepIsr = function() {
 
 Kernel.stepModeIsr = function() {
     Kernel.isStepModeActivated = !Kernel.isStepModeActivated;
+};
+
+Kernel.processFaultIsr = function(params) {
+    Kernel.trace(params);
+    _CPU.stop();
+    ProcessManager.unload(pcb);
 };
 
 // Handles messages being outputted by the kernal

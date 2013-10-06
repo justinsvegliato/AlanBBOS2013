@@ -50,4 +50,4 @@ ProcessControlBlock.prototype.update = function(programCounter, instructionRegis
     this.zFlag = zFlag;
 };
 
-ProcessControlBlock.lastProcessId = 1;
+ProcessControlBlock.lastProcessId = 0;

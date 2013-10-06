@@ -9,14 +9,7 @@
  */
 
 function Cpu() {
-    this.programCounter = 0;    
-    this.instructionRegister = 0;
-    this.accumulator = 0;
-    this.xRegister = 0;
-    this.yRegister = 0;
-    this.zFlag = 0;    
-    this.isExecuting = false;   
-    this.currentProcess = null;
+    this.reset();
 }
 
 Cpu.prototype.start = function(pcb) {
@@ -26,125 +19,156 @@ Cpu.prototype.start = function(pcb) {
 };
 
 Cpu.prototype.stop = function() {
-    this.programCounter = 0;    
+   this.reset();
+};
+
+Cpu.prototype.reset = function() {
+    this.programCounter = 0;
     this.instructionRegister = 0;
     this.accumulator = 0;
     this.xRegister = 0;
     this.yRegister = 0;
-    this.zFlag = 0;    
-    this.isExecuting = false;   
+    this.zFlag = 0;
+    this.isExecuting = false;
+    
     this.currentProcess = null;
+    this.operation = null;
 };
 
 Cpu.prototype.cycle = function() {
-    Kernel.trace("CPU cycle");  
-    
-    this.instructionRegister = MemoryManager.read(this.programCounter++).toLowerCase(); 
-   
-    var operation = Cpu.operationMap[this.instructionRegister];
-    
-    if (operation) {
-        operation(this);    
+    Kernel.trace("CPU cycle");
+
+    this.instructionRegister = MemoryManager.read(this.programCounter++).toLowerCase();
+
+    this.operation = Cpu.prototype.operationMap[this.instructionRegister];
+
+    if (this.operation) {
+        this.operation();
         if (this.currentProcess) {
             this.currentProcess.update(this.programCounter, this.instructionRegister, this.accumulator, this.xRegister, this.yRegister, this.zFlag);
         }
-    }     
-};
-
-Cpu.ldaImmediateOperation = function(cpu) {
-    cpu.accumulator = Cpu.readValue(cpu);
-};
-
-Cpu.ldaDirectOperation = function(cpu) {
-    cpu.accumulator = Cpu.readFromMemory(Cpu.readMemoryLocation(cpu), cpu);
-};
-
-Cpu.staOperation = function(cpu) {
-    Cpu.writeToMemory(cpu.accumulator, Cpu.readMemoryLocation(cpu), cpu);   
-};
-
-Cpu.ldxImmediateOperation = function(cpu) {
-    cpu.xRegister = Cpu.readValue(cpu);
-};
-
-Cpu.ldxDirectOperation = function(cpu) {
-    cpu.xRegister = Cpu.readFromMemory(Cpu.readMemoryLocation(cpu), cpu);
-};
-
-Cpu.ldyImmediateOperation = function(cpu) {
-    cpu.yRegister = Cpu.readValue(cpu);
-};
-
-Cpu.ldyDirectOperation = function(cpu) {
-    cpu.yRegister = Cpu.readFromMemory(Cpu.readMemoryLocation(cpu), cpu);
-};
-
-Cpu.nopOperation = function() {};
-
-Cpu.brkOperation = function(cpu) {
-    Kernel.handleInterupts(PROCESS_TERMINATION_IRQ, cpu.currentProcess);
-};
-
-Cpu.cpxOperation = function(cpu) {
-    var byte = Cpu.readFromMemory(Cpu.readMemoryLocation(cpu), cpu);
-    cpu.zFlag = (byte === cpu.xRegister) ? 1 : 0;
-};
-
-Cpu.bneOperation = function(cpu) {
-    if (!cpu.zFlag) {
-        var location = cpu.programCounter + Cpu.readValue(cpu);
-        location = location > cpu.currentProcess.limit 
-                 ? location - cpu.currentProcess.limit
-                 : location;
-        cpu.programCounter = location;
-    }
-};
-
-Cpu.incOperation = function(cpu) {
-    var memoryLocation = Cpu.readMemoryLocation(cpu);
-    var byte = Cpu.readFromMemory(memoryLocation, cpu) + 1;
-    Cpu.writeToMemory(byte, memoryLocation, cpu);
-};
-
-Cpu.sysOperation = function(cpu) {
-    if (cpu.xRegister === 1 || cpu.xRegister === 2) {
-        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [cpu.xRegister, cpu.yRegister]);
     } else {
-        // TODO: Trace an error
+        Kernel.handleInterupts(PROCESS_FAULT_IRQ, "Unrecognized instruction: " + this.instructionRegister);
+        this.reset();
     }
 };
 
-Cpu.operationMap = {
-    "a9": Cpu.ldaImmediateOperation,
-    "ad": Cpu.ldaDirectOperation,
-    "8d": Cpu.staOperation,
-    "a2": Cpu.ldxImmediateOperation,
-    "ae": Cpu.ldxDirectOperation,
-    "a0": Cpu.ldyImmediateOperation,
-    "ac": Cpu.ldyDirectOperation,
-    "00": Cpu.brkOperation,
-    "ea": Cpu.nopOperation,
-    "ec": Cpu.cpxOperation,
-    "d0": Cpu.bneOperation,
-    "ee": Cpu.incOperation,
-    "ff": Cpu.sysOperation
+Cpu.prototype.ldaImmediateOperation = function() {
+    this.accumulator = this.readValueParameter();
 };
+Cpu.prototype.ldaImmediateOperation.argumentLength = 1;
 
-Cpu.readValue = function(cpu) {
-    var value = MemoryManager.read(cpu.programCounter++, cpu.currentProcess);
+Cpu.prototype.ldaDirectOperation = function() {
+    this.accumulator = this.readFromMemory(this.readMemoryParameter());
+};
+Cpu.prototype.ldaDirectOperation.argumentLength = 2;
+
+Cpu.prototype.staOperation = function() {
+    this.writeToMemory(this.accumulator, this.readMemoryParameter());
+};
+Cpu.prototype.staOperation.argumentLength = 2;
+
+Cpu.prototype.adcOperation = function() {
+    var memoryLocation = this.readMemoryParameter();
+    this.accumulator += this.readFromMemory(memoryLocation);
+};
+Cpu.prototype.adcOperation.argumentLength = 2;
+
+Cpu.prototype.ldxImmediateOperation = function() {
+    this.xRegister = this.readValueParameter();
+};
+Cpu.prototype.ldxImmediateOperation.argumentLength = 1;
+
+Cpu.prototype.ldxDirectOperation = function() {
+    this.xRegister = this.readFromMemory(this.readMemoryParameter());
+};
+Cpu.prototype.ldxDirectOperation.argumentLength = 2;
+
+Cpu.prototype.ldyImmediateOperation = function() {
+    this.yRegister = this.readValueParameter();
+};
+Cpu.prototype.ldyImmediateOperation.argumentLength = 1;
+
+Cpu.prototype.ldyDirectOperation = function() {
+    this.yRegister = this.readFromMemory(this.readMemoryParameter());
+};
+Cpu.prototype.ldyDirectOperation.argumentLength = 2;
+
+Cpu.prototype.nopOperation = function() {};
+Cpu.prototype.nopOperation.argumentLength = 0;
+
+Cpu.prototype.brkOperation = function() {
+    Kernel.handleInterupts(PROCESS_TERMINATION_IRQ, this.currentProcess);
+};
+Cpu.prototype.brkOperation.argumentLength = 0;
+
+Cpu.prototype.cpxOperation = function() {
+    var byte = this.readFromMemory(this.readMemoryParameter());
+    this.zFlag = (byte === this.xRegister) ? 1 : 0;
+};
+Cpu.prototype.cpxOperation.argumentLength = 2;
+
+Cpu.prototype.bneOperation = function() {
+    var jump = this.readValueParameter();
+    if (!this.zFlag) {
+        var location = this.programCounter + jump;
+        location = location > this.currentProcess.limit 
+                 ? location - this.currentProcess.limit - 1 
+                 : location;
+        this.programCounter = location;
+        this.instructionRegister = MemoryManager.read(this.programCounter).toLowerCase();
+    }
+};
+Cpu.prototype.bneOperation.argumentLength = 1;
+
+Cpu.prototype.incOperation = function() {
+    var memoryLocation = this.readMemoryParameter(this);
+    var byte = this.readFromMemory(memoryLocation) + 1;
+    this.writeToMemory(byte, memoryLocation);
+};
+Cpu.prototype.incOperation.argumentLength = 2;
+
+Cpu.prototype.sysOperation = function() {
+    if (this.xRegister === 1 || this.xRegister === 2) {
+        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [this.xRegister, this.yRegister]);
+    } else {
+        Kernel.trace("Invalid parameter for system call");
+    }
+};
+Cpu.prototype.sysOperation.argumentLength = 0;
+
+Cpu.prototype.readValueParameter = function() {
+    var value = MemoryManager.read(this.programCounter++, this.currentProcess);
     return parseInt(value, 16);
 };
 
-Cpu.readMemoryLocation = function(cpu) {
-    var suffix = MemoryManager.read(cpu.programCounter++, cpu.currentProcess);
-    var prefix = MemoryManager.read(cpu.programCounter++, cpu.currentProcess);
+Cpu.prototype.readMemoryParameter = function() {
+    var suffix = MemoryManager.read(this.programCounter++, this.currentProcess);
+    var prefix = MemoryManager.read(this.programCounter++, this.currentProcess);
     return parseInt(prefix + "" + suffix, 16);
 };
 
-Cpu.readFromMemory = function(memoryLocation, cpu) {
-    return parseInt(MemoryManager.read(memoryLocation, cpu.currentProcess), 16);
+Cpu.prototype.readFromMemory = function(memoryLocation) {
+    return parseInt(MemoryManager.read(memoryLocation, this.currentProcess), 16);
 };
 
-Cpu.writeToMemory = function(value, memoryLocation, cpu) {
-    MemoryManager.write(value.toString(16), memoryLocation, cpu.currentProcess);
+Cpu.prototype.writeToMemory = function(value, memoryLocation) {
+    MemoryManager.write(value.toString(16), memoryLocation, this.currentProcess);
+};
+
+Cpu.prototype.operationMap = {
+    "a9": Cpu.prototype.ldaImmediateOperation,
+    "ad": Cpu.prototype.ldaDirectOperation,
+    "8d": Cpu.prototype.staOperation,
+    "6d": Cpu.prototype.adcOperation,
+    "a2": Cpu.prototype.ldxImmediateOperation,
+    "ae": Cpu.prototype.ldxDirectOperation,
+    "a0": Cpu.prototype.ldyImmediateOperation,
+    "ac": Cpu.prototype.ldyDirectOperation,
+    "00": Cpu.prototype.brkOperation,
+    "ea": Cpu.prototype.nopOperation,
+    "ec": Cpu.prototype.cpxOperation,
+    "d0": Cpu.prototype.bneOperation,
+    "ee": Cpu.prototype.incOperation,
+    "ff": Cpu.prototype.sysOperation
 };

@@ -34,5 +34,5 @@ ConsoleDisplay.enterActiveState = function() {
 ConsoleDisplay.enterErrorState = function() {
     $("#display").css("display", "none");
     $("#display-container").css("background-image", "url('assets/img/bsod.png')");
-    $("#display-container").css("background-size", "525px 450px");
+    $("#display-container").css("background-size", "515px 535px");
 };
