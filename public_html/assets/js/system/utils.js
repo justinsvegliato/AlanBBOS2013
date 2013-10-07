@@ -19,7 +19,7 @@ function capitalizeFirstLetter(string) {
 function trim(str) {
     // Uses a regular expression to remove leading and trailing spaces
     return str.replace(/^\s+ | \s+$/g, "");
-    
+
     /* 
      * Huh?  Take a breath.  Here we go:
      * The "|" separates this into two expressions, as in A or B.
@@ -63,3 +63,21 @@ String.prototype.format = String.prototype.f = function() {
     }
     return s;
 };
+
+// Adds padding to a word to ensure that it is of the specified size
+function pad(word, size) {
+    var paddedWord = "" + word;
+    while (paddedWord.length < size) {
+        paddedWord = "0" + paddedWord;
+    }
+    return paddedWord;
+}
+
+// Converts a string to hexidecimal
+function toHexidecimal(str) {
+    var hex = '';
+    for (var i = 0; i < str.length; i++) {
+        hex += '' + str.charCodeAt(i).toString(16);
+    }
+    return hex;
+}

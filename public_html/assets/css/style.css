@@ -32,16 +32,6 @@ body {
   width: 970px;
 }
 
-/* Demonstrate the grids */
-.col-xs-4 {
-  padding-top: 15px;
-  padding-bottom: 15px;
-  background-color: #eee;
-  border: 1px solid #ddd;
-  background-color: rgba(86,61,124,.15);
-  border: 1px solid rgba(86,61,124,.2);
-}
-
 .container .navbar-header,
 .container .navbar-collapse {
   margin-right: 0;
@@ -115,8 +105,9 @@ body {
   color: #999 !important;
   background-color: transparent !important;
 }
+
 #log {
-    height: 193px;
+    height: 150px;
     overflow: auto;
 }
 div.entry {
@@ -139,6 +130,22 @@ canvas:focus {
     display: none;
 }
 #display-container {
-    height: 445px;
+    height: 535px;
     width: 515px;
+}
+#memory-display {
+    height: 129px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+.tab-content {
+    margin-top: 20px;
+}
+#taProgramInput {
+    height: 169px;
+}
+.highlighted-location {
+    font-weight: bolder;
+    color: #b31b1b;
+    text-shadow: #737072 0.075em 0.075em 0.1em;
 }

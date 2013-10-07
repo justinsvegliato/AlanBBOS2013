@@ -23,6 +23,10 @@ Kernel.console = null;
 Kernel.stdIn = null;
 Kernel.stdOut = null;
 Kernel.shell = null;
+Kernel.memoryManager = null;
+Kernel.processManager = null;
+
+Kernel.isStepModeActivated = null;
 
 //
 // OS Startup and Shutdown Routines   
@@ -52,9 +56,8 @@ Kernel.bootstrap = function() {
     Kernel.keyboardDriver.driverEntry();
     Kernel.trace(Kernel.keyboardDriver.status);
     
-    //
-    // ... more?
-    //
+    Kernel.memoryManager = MemoryManager;
+    Kernel.processManager = ProcessManager;  
 
     // Enable the OS interrupts 
     // Note: This is not the CPU clock interrupt, as that is done in the host
@@ -64,12 +67,17 @@ Kernel.bootstrap = function() {
     // Launch the shell
     Kernel.trace("Initializing the shell");
     Kernel.shell = new Shell();
-
+    
+    // By default the step mode will be false
+    Kernel.isStepModeActivated = false;
+    
     // Initiate testing if available
     if (_GLaDOS) {
         Kernel.trace("Initializing testing hook");
         _GLaDOS.afterStartup();
     }
+    
+    Control.update();
 };
 
 // Handles logic associated with terminating the system
@@ -94,7 +102,7 @@ Kernel.pulse = function() {
      * This is NOT the same as a TIMER, which causes an interrupt and is handled like other 
      * interrupts. This, on the other hand, is the clock pulse from the hardware (or host) 
      * that tells the kernel that it has to look for interrupts and process them if it finds any.  
-     */
+     */   
     
     // Handle the interrupt if there is an interrupt on the queue or otherwise check if the
     // CPU is currently processing. The kernel remains idle if neither case applies.
@@ -102,11 +110,13 @@ Kernel.pulse = function() {
         // TODO: Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
         var interrupt = Kernel.interruptQueue.dequeue();
         Kernel.handleInterupts(interrupt.irq, interrupt.params);
-    } else if (_CPU.isExecuting) {
-        _CPU.cycle();
+        Control.update();
+    } else if (_CPU.isExecuting && !Kernel.isStepModeActivated) {
+        _CPU.cycle();             
+        Control.update();
     } else {
         Kernel.trace("Idle");
-    }
+    } 
 };
 
 //
@@ -116,13 +126,11 @@ Kernel.pulse = function() {
 // Simply enables the interrupts
 Kernel.enableInterrupts = function() {
     hostEnableKeyboardInterrupt();
-    // TODO: More goes here
 };
 
 // Simply disables the interrupts
 Kernel.disableInterrupts = function() {
     hostDisableKeyboardInterrupt();
-    // TODO: More goes here
 };
 
 // Handles all interrupts - this is the interrupt handler rourtine
@@ -135,17 +143,51 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
     switch (irq) {
         // The Kernel built-in routine for timers
         case TIMER_IRQ:
-            Kernel.timerISR();
+            Kernel.timerIsr();
             break;
         // The kernal-mode device driver
         case KEYBOARD_IRQ:
             Kernel.keyboardDriver.isr(params);
             Kernel.stdIn.handleInput();
             break;
+        // The routine for a when a process is initialized
+        case PROCESS_INITIALIZATION_IRQ:
+            Kernel.processInitializationIsr(params);
+            break;
+        // The routine for when a process is terminated
+        case PROCESS_TERMINATION_IRQ:
+            Kernel.processTerminationIsr(params);
+            break;          
+        // The routine for when a process tries to access an out-of-bounds memory location
+        case MEMORY_ACCESS_FAULT_IRQ:
+            Kernel.memoryFaultIsr(params);
+            break;
+        // The routine for a system call from a user program
+        case SYSTEM_CALL_IRQ:
+            Kernel.systemCallIsr(params);
+            break;
+        // The routine which handles stepping through each intruction of a process
+        case STEP_IRQ:
+            Kernel.stepIsr();
+            break;
+        // The routine that handles step mode activation and deactivation
+        case STEP_MODE_IRQ:
+            Kernel.stepModeIsr();
+            break;
+        // The routine that handles errors in the program code
+        case PROCESS_FAULT_IRQ:
+            Kernel.processFaultIsr(params);
+            break;
+        // The routine that handles error that occur when a process is loaded
+        case PROCESS_LOAD_FAULT_IRQ:
+            Kernel.processLoadFaultIsr(params);
+            break;
         // Trap if the interrupt is not recognized
         default:
-            Kernel.trapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
+            Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
     }
+    
+    Control.update();
 };
 
 //
@@ -153,9 +195,92 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
 //
 
 // The built-in TIMER (not clock) Interrupt Service Routine (as opposed to an ISR coming from a device driver)
-Kernel.timerISR = function() {
+Kernel.timerIsr = function() {
     // Check multiprogramming parameters and enforce quanta here - call the scheduler
-    // and  context switch here if necessary
+    // and context switch here if necessary
+};
+
+// The interrupt service routine that handles the initialization of a process
+Kernel.processInitializationIsr = function(pcb) {
+    _CPU.start(pcb);
+};
+
+// The interrupt service routine that handles the termination of a process
+Kernel.processTerminationIsr = function(pcb) {
+    // Clean up the cpu and the process manger (set everything back to default settings)
+    _CPU.stop();
+    ProcessManager.unload(pcb);
+    Kernel.console.handleProcessOutput(pcb.output);
+};
+
+// The interrupt service routine that faults that occur during process loading
+Kernel.processLoadFaultIsr = function(message) {
+    Kernel.console.handleResponse(message);
+};
+
+// The interrupt service routine that handles memory access errors
+Kernel.memoryAccessFaultIsr = function(pcb) {
+    // Restore everything back to default settings
+    _CPU.stop();
+    ProcessManager.unload(pcb);  
+    
+    // Do some output to alert the use
+    var message = "Memory access error from process " + pcb.processId;
+    Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);
+    
+    Kernel.trace(message);     
+};
+
+// The interrupt service routine that handles system calls from a user program
+Kernel.systemCallIsr = function(params) {
+    var xRegister = params[0];
+    var yRegister = params[1];
+    var pcb = params[2];
+    // If the x Register is 1, print the contents of the y Register. If the x register is 2,
+    // print the 00-terminated string starting at the memory location held by the y register
+    if (xRegister === 1) {
+        Kernel.console.putText(yRegister.toString());
+        pcb.output += yRegister.toString();
+    } else {
+        var byte = null;
+        var memoryLocation = yRegister;
+        // Keep looping unless we see a "00" (or a 0 since we call parseInt on the value
+        // at the memory location
+        while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== 0) {
+            Kernel.console.putText(String.fromCharCode(byte));
+            pcb.output += String.fromCharCode(byte);
+        }
+    }
+};
+
+// The interrupt service routine that handles stepping through a user process
+Kernel.stepIsr = function() {
+    // Just simply call cycle() to handle the next instruction
+    _CPU.cycle(); 
+};
+
+// The interrupt service routine that activates/deactivates step mode
+Kernel.stepModeIsr = function() {
+    Kernel.isStepModeActivated = !Kernel.isStepModeActivated;
+};
+
+// The interrupt service routine that handles errors in the user program
+Kernel.processFaultIsr = function(params) {
+    var message = params[0];
+    var pcb = params[1];
+    
+    // Restore the default settings of the process manager and cpu
+    _CPU.stop();
+    ProcessManager.unload(pcb);
+    
+    // Do some output to alert the user of the error
+    Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);  
+    
+    Kernel.trace(message);
 };
 
 // Handles messages being outputted by the kernal

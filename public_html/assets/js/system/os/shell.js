@@ -1,16 +1,12 @@
 /**  
  * The OS Shell - the "command line interface" (CLI) for the console.
  */
- 
-// TODO: Roto13 bug?
 
 // Creates the field members and initializes the shell
 function Shell() {
     // Properties
     this.promptStr = ">";
     this.commandList = [];
-    this.curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
-    this.apologies = "[sorry]";
     this.inputHistory = new InputHistory();
 
     this.init();
@@ -42,7 +38,7 @@ Shell.prototype.init = function() {
             // Construct and print the command entry in the help message
             var command = Kernel.shell.commandList[i].getCommand();
             var description = Kernel.shell.commandList[i].getDescription();
-            var success = Kernel.stdIn.handleResponse("  " + command + " " + description);
+            Kernel.stdIn.handleResponse("  " + command + " " + description);
 
             // Advance the line if the message was printed to the console
             Kernel.stdIn.advanceLine();
@@ -54,7 +50,6 @@ Shell.prototype.init = function() {
     shellCommand = new ShellCommand("shutdown", "- Shuts down SvegOS", function() {
         Kernel.stdIn.handleResponse("Shutting down...");
         Kernel.shutdown();
-        // TODO: Stop the final prompt from being displayed
     });
     this.commandList.push(shellCommand);
 
@@ -89,12 +84,8 @@ Shell.prototype.init = function() {
             var setting = args[0];
             switch (setting) {
                 case "on":
-                    if (_Trace && _SarcasticMode) {
-                        Kernel.stdIn.handleResponse("Trace is already on, dumbass");
-                    } else {
-                        _Trace = true;
-                        Kernel.stdIn.handleResponse("Activated trace");
-                    }
+                    _Trace = true;
+                    Kernel.stdIn.handleResponse("Activated trace");
                     break;
                 case "off":
                     _Trace = false;
@@ -144,7 +135,7 @@ Shell.prototype.init = function() {
     // The 'status' command
     shellCommand = new ShellCommand("status", "<string> - Sets a status message", function(args) {
         if (args.length > 0) {
-            TaskBar.setStatus(args[0]);
+            TaskBarDisplay.setStatus(args[0]);
         } else {
             Kernel.stdIn.handleResponse("Usage: status <string>");
         }
@@ -159,19 +150,25 @@ Shell.prototype.init = function() {
             if (program.length <= 0) {
                 return "No program was specified";
             }
+            
             // Split the input space and interate through each command
             var components = program.split(" ");
             for (var i = 0; i < components.length; i++) {
                 // Print an error if the instruction contains an invalid character (non-hexidecimal)
                 if (!components[i].match(/^[a-f0-9]+$/i)) {
-                    return "Invalid character specified: " + components[i];
+                    return "Invalid character: " + components[i];
                 }
-            }
-            return "Loaded program";
+            }          
+            
+            // Load the program into memory and display the process id
+            var pcb = ProcessManager.load(program);
+            if (pcb) {
+                return "Process ID: " + pcb.processId;
+            }             
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
-    this.commandList.push(shellCommand);
+    this.commandList.push(shellCommand);    
 
     // The 'filter' command
     shellCommand = new ShellCommand("\\", "<regex> <function> - Filters function output", (function self(args) {
@@ -223,7 +220,21 @@ Shell.prototype.init = function() {
         Kernel.trapError("Enabled bsod via command");
     });
     this.commandList.push(shellCommand);
-
+    
+    // The 'run' command
+    shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
+        // Get the pcb associated with the specified id
+        var pcb = ProcessManager.processControlBlocks[args[0]];
+        
+        // Execute the process if it is not null, otherwise print an error
+        if (pcb) {
+            ProcessManager.execute(pcb);
+        } else {
+            Kernel.stdIn.handleResponse("Unrecognized process ID");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
     this.putPrompt();
 };
 
@@ -250,14 +261,10 @@ Shell.prototype.handleInput = function(buffer) {
         if (fn) {
             this.execute(fn, args);
         } else {
-            // Check for curses and apologies before declaring the command invalid
-            if (this.curses.indexOf("[" + rot13(args) + "]") >= 0) {
-                this.execute(shellCurse);
-            } else if (this.apologies.indexOf("[" + args + "]") >= 0) {
-                this.execute(shellApology);
-            } else {
-                this.execute(shellInvalidCommand);
-            }
+            Kernel.stdIn.advanceLine();
+            Kernel.stdIn.handleResponse("Invalid Command. Type 'help' to see all commands.");
+            Kernel.stdIn.advanceLine();
+            this.putPrompt();
         }      
     } else {
         Kernel.stdIn.advanceLine();
@@ -420,32 +427,4 @@ function InputHistory() {
     this.getInput = function() {
         return (position === -1) ? "" : history[position];
     };
-}
-
-//
-// Shell Command Functions. Again, not part of Shell() class per se, just called from there.
-//
-
-function shellInvalidCommand() {
-    Kernel.stdIn.handleResponse("Invalid Command. Type 'help' to see all commands.");
-    if (_SarcasticMode) {
-        Kernel.stdIn.advanceLine();
-        Kernel.stdIn.handleResponse("Duh. Go back to your Speak & Spell.");
-    }
-}
-
-function shellCurse() {
-    Kernel.stdIn.handleResponse("Oh, so that's how it's going to be, eh? Fine.");
-    Kernel.stdIn.advanceLine();
-    Kernel.stdIn.handleResponse("Bitch.");
-    _SarcasticMode = true;
-}
-
-function shellApology() {
-    if (_SarcasticMode) {
-        Kernel.stdIn.handleResponse("Okay. I forgive you. This time.");
-        _SarcasticMode = false;
-    } else {
-        Kernel.stdIn.handleResponse("For what?");
-    }
 }

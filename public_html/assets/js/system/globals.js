@@ -15,6 +15,14 @@ var APP_VERSION = "0.01";
 var CPU_CLOCK_INTERVAL = 50;
 var TIMER_IRQ = 0;
 var KEYBOARD_IRQ = 1;
+var SYSTEM_CALL_IRQ = 2;
+var PROCESS_INITIALIZATION_IRQ = 3;
+var PROCESS_TERMINATION_IRQ = 4;
+var MEMORY_ACCESS_FAULT_IRQ = 5;
+var STEP_IRQ = 6;
+var STEP_MODE_IRQ = 7;
+var PROCESS_FAULT_IRQ = 8;
+var PROCESS_LOAD_FAULT_IRQ = 9;
 
 //
 // Global Variables
@@ -24,9 +32,6 @@ var _OSclock = 0;
 var _Mode = 0;
 var _Trace = true;
 
-// At least this OS is not trying to kill you. (Yet.)
-var _SarcasticMode = false
-;
 // For testing purposes...
 var _GLaDOS = null;
 var krnInterruptHandler = null;

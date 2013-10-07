@@ -10,11 +10,11 @@
 // Instantiates the console with values derived from the display driver
 function Console() {
     // Properties
-    this.font = Display.FONT_FAMILY;
-    this.fontSize = Display.FONT_SIZE;
-    this.fontHeightMargin = Display.FONT_HEIGHT_MARGIN;
+    this.font = ConsoleDisplay.FONT_FAMILY;
+    this.fontSize = ConsoleDisplay.FONT_SIZE;
+    this.fontHeightMargin = ConsoleDisplay.FONT_HEIGHT_MARGIN;
     this.xPosition = 0;
-    this.yPosition = Display.FONT_SIZE;
+    this.yPosition = ConsoleDisplay.FONT_SIZE;
 
     this.buffer = "";
     this.outputHistory = [];
@@ -36,7 +36,7 @@ Console.prototype.init = function() {
 // Clears the screen
 Console.prototype.clearScreen = function() {
     // Draws a rectangle the size of the canvas
-    Display.drawingContext.clearRect(0, 0, Display.canvas.width, Display.canvas.height);
+    ConsoleDisplay.drawingContext.clearRect(0, 0, ConsoleDisplay.canvas.width, ConsoleDisplay.canvas.height);
 };
 
 // Resets the XY positions
@@ -82,10 +82,10 @@ Console.prototype.handleInput = function() {
 Console.prototype.putText = function(text) {
     if (text) {
         // Draw the text at the current X and Y coordinates
-        Display.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, text);
+        ConsoleDisplay.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, text);
 
         // Move the current X position forward
-        var offset = Display.drawingContext.measureText(this.font, this.fontSize, text);
+        var offset = ConsoleDisplay.drawingContext.measureText(this.font, this.fontSize, text);
         this.xPosition = this.xPosition + offset;
     }
 };
@@ -94,11 +94,11 @@ Console.prototype.putText = function(text) {
 Console.prototype.removeText = function(text) {
     if (text !== "") {
         // Move the current X position backward
-        var offset = Display.drawingContext.measureText(this.font, this.fontSize, text);
+        var offset = ConsoleDisplay.drawingContext.measureText(this.font, this.fontSize, text);
         this.xPosition = this.xPosition - offset;
 
         // Draw a rectangle over the last character in the buffer
-        Display.drawingContext.clearRect(this.xPosition, this.yPosition - this.fontSize - 1, offset, this.fontSize * 2);
+        ConsoleDisplay.drawingContext.clearRect(this.xPosition, this.yPosition - this.fontSize - 1, offset, this.fontSize * 2);
     }
 };
 
@@ -106,6 +106,13 @@ Console.prototype.removeText = function(text) {
 Console.prototype.handleRequest = function(line) {
     this.outputHistory.push(Kernel.shell.promptStr + line);
     return true;
+};
+
+// Handles the output of the process
+Console.prototype.handleProcessOutput = function(line) {
+    this.outputHistory.push(Kernel.shell.promptStr + line);
+    this.advanceLine();
+    this.putText(Kernel.shell.promptStr);
 };
 
 // Checks if the response, i.e., the data returned from the execution of a command, is valid
@@ -144,7 +151,7 @@ Console.prototype.advanceLine = function() {
 // that have been entered. 
 Console.prototype.handleScrolling = function () {
     // The max line length is the number of lines that can fit onto the canvas
-    var maxLineLength = Math.floor(Display.HEIGHT / (this.fontSize + this.fontHeightMargin));
+    var maxLineLength = Math.floor(ConsoleDisplay.HEIGHT / (this.fontSize + this.fontHeightMargin));
     
     // If the output history is longer than the number of lines that can fit onto the canvas
     if (this.outputHistory.length > maxLineLength) {
@@ -157,7 +164,7 @@ Console.prototype.handleScrolling = function () {
         
         // Redraw the screen with the adjusted output history
         for (var i = 1; i < this.outputHistory.length; i++) {
-            Display.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, this.outputHistory[i]);
+            ConsoleDisplay.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, this.outputHistory[i]);
             this.yPosition += this.fontSize + this.fontHeightMargin;
         }
     }

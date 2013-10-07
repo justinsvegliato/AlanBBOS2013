@@ -20,9 +20,9 @@ function Control() {};
 // the taskbar to the inactive state
 Control.init = function() {
     // Create the canvas, clear the log, and change the taskbar
-    Display.createCanvas();
-    Log.clear();
-    TaskBar.enterInactiveState();
+    ConsoleDisplay.createCanvas();
+    LogDisplay.clear();
+    TaskBarDisplay.enterInactiveState();
 
     // Check for our testing and enrichment core
     if (typeof Glados === "function") {
@@ -33,11 +33,8 @@ Control.init = function() {
 
 // Handles logging messages
 Control.log = function(msg, source) {
-    // TODO: This taskbar date time update should be moved elsewhere
-    TaskBar.updateDateTime();
-    Log.record(_OSclock, source, msg);
+    LogDisplay.record(_OSclock, source, msg);
 };
-
 
 //
 // Control Events
@@ -48,14 +45,13 @@ Control.start = function() {
     Control.log("Starting bootstrap process", "host");
 
     // Disable the start button, and enable the handle/reset button
-    TaskBar.enterActiveState();
+    TaskBarDisplay.enterActiveState();
     
     // Send focus to the display (this will do more the in future)
-    Display.enterActiveState();
+    ConsoleDisplay.enterActiveState();
         
     // Initialize the CPU
     _CPU = new Cpu();
-    _CPU.init();
 
     _hardwareClockID = setInterval(hostClockPulse, CPU_CLOCK_INTERVAL);
     
@@ -70,10 +66,9 @@ Control.halt = function() {
 
     // Terminate the operating system and clear the hardware clock
     Kernel.shutdown();    
-    clearInterval(_hardwareClockID);
     
     // Enable the start button and disable the halt/restart buttons
-    TaskBar.enterInactiveState();
+    TaskBarDisplay.enterInactiveState();
 };
 
 // Handles all logic associated with the blue screen of death
@@ -81,11 +76,35 @@ Control.halt = function() {
 Control.bsod = function() {
     // Terminate the operating system and clear the hardware block 
     Kernel.shutdown();    
-    clearInterval(_hardwareClockID);
     
     // Adjusts the display (show bsod) and taskbar (disable all buttons but restart) accordingly
-    Display.enterErrorState();
-    TaskBar.enterErrorState();
+    ConsoleDisplay.enterErrorState();
+    TaskBarDisplay.enterErrorState();
+};
+
+// Handles logic associated with updating all displays (this does not affect CPU exection at all)
+Control.update = function() {
+    TaskBarDisplay.updateDateTime();
+    ProcessDisplay.update(_CPU);
+    CpuDisplay.update(_CPU);
+    MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
+};
+
+// Handles logic behind entering step mode by sending an interrupt to the kernel
+Control.enterStepMode = function() {
+    TaskBarDisplay.startStepMode();
+    Kernel.handleInterupts(STEP_MODE_IRQ);
+};
+
+// Handles logic behind exiting step mode by sending an interrupt to the kernel
+Control.exitStepMode = function() {
+    TaskBarDisplay.exitStepMode();
+    Kernel.handleInterupts(STEP_MODE_IRQ);
+};
+
+// Handles logic behind stepping through the process by sending an interrupt to the kernel
+Control.step = function() {
+    Kernel.handleInterupts(STEP_IRQ);
 };
 
 // Handles all logic associated with resetting the operating system (just a restart)
@@ -95,15 +114,36 @@ Control.reset = function() {
 
 // Attaches functions to the three buttons in the taskbar and initializes the console
 $(document).ready(function() {
-    $("#start").click(function() {
-        Control.start(this);
+    // Handles the logic behind the start-stop button
+    $(TaskBarDisplay.startStopElement).click(function() {
+        // Start the OS if the button is styled correctly, otherwise stop it
+        if (TaskBarDisplay.startStopElement.hasClass("btn-success")) {
+            Control.start(this);
+        } else {
+            Control.halt(this);
+        }
     });
-    $("#halt").click(function() {
-        Control.halt();
-    });
-    $("#reset").click(function() {
+    
+    // Handles the logic behind the reset button
+    $(TaskBarDisplay.resetElement).click(function() {
         Control.reset();
     });
+    
+    // Handles the logic behind the start step mode button
+    $(TaskBarDisplay.startStepModeButton).click(function() {
+        // Enter step mode if the button is styled correctly, otherwise exit stop mode
+        if (TaskBarDisplay.startStepModeButton.hasClass("btn-success")) {
+            Control.enterStepMode();
+        } else {
+            Control.exitStepMode();
+        }
+    });
+    
+    // Handles logic behind the step button (as opposed to the button that starts step mode)
+    $(TaskBarDisplay.stepButton).click(function() {
+       Control.step(); 
+    });
+    
     $(".btn-group, #content").hide().fadeIn();
     Control.init();
 });
