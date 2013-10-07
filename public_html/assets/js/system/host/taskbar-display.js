@@ -56,11 +56,13 @@ TaskBarDisplay.enterActiveState = function() {
     TaskBarDisplay.startStepModeButton.prop("disabled", false);
 };
 
+// Changes the task bar for when the OS is in step mode
 TaskBarDisplay.startStepMode = function() {
     TaskBarDisplay.stepButton.prop("disabled", false);
     TaskBarDisplay.startStepModeButton.removeClass("btn-success").addClass("btn-danger").html("Exit Step Mode");
 };
 
+// Changes the task bar for when the OS is not in step mode
 TaskBarDisplay.exitStepMode = function() {
     TaskBarDisplay.stepButton.prop("disabled", true);
     TaskBarDisplay.startStepModeButton.removeClass("btn-danger").addClass("btn-success").html("Enter Step Mode");

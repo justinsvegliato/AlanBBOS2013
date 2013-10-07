@@ -63,6 +63,7 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
     var keyCode = params[0];
     var isShifted = params[1];
     
+    // Throw an error if we receive bad parameters
     if (keyCode === null || isShifted === null || typeof keyCode !== "number" || typeof isShifted !== "boolean") {
         Kernel.trapError("Invalid parameters passed to the keyboard ISR");
         return;
@@ -70,6 +71,7 @@ DeviceDriverKeyboard.prototype.isr = function(params) {
     
     Kernel.trace("Key code:" + keyCode + " shifted:" + isShifted);
 
+    // An enumeration of the conditions just to clean up the code a bit
     var isLetter = (keyCode >= 65) && (keyCode <= 90);
     var isDigit = (keyCode >= 48) && (keyCode <= 57);
     var isSpecialCharacter = ((keyCode >= 219) && (keyCode <= 222)) || ((keyCode >= 186) && (keyCode <= 192));

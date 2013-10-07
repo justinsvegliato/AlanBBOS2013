@@ -160,14 +160,11 @@ Shell.prototype.init = function() {
                 }
             }          
             
+            // Load the program into memory and display the process id
             var pcb = ProcessManager.load(program);
             if (pcb) {
-                return "Process ID: " + pcb.processId + "";
-            } else {
-                Kernel.handleInterupts(MEMORY_FAULT_IRQ, "Insufficient memory");
-            }
-            
-
+                return "Process ID: " + pcb.processId;
+            }             
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
@@ -226,7 +223,10 @@ Shell.prototype.init = function() {
     
     // The 'run' command
     shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
+        // Get the pcb associated with the specified id
         var pcb = ProcessManager.processControlBlocks[args[0]];
+        
+        // Execute the process if it is not null, otherwise print an error
         if (pcb) {
             ProcessManager.execute(pcb);
         } else {

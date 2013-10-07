@@ -82,6 +82,7 @@ Control.bsod = function() {
     TaskBarDisplay.enterErrorState();
 };
 
+// Handles logic associated with updating all displays (this does not affect CPU exection at all)
 Control.update = function() {
     TaskBarDisplay.updateDateTime();
     ProcessDisplay.update(_CPU);
@@ -89,16 +90,19 @@ Control.update = function() {
     MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
 };
 
+// Handles logic behind entering step mode by sending an interrupt to the kernel
 Control.enterStepMode = function() {
     TaskBarDisplay.startStepMode();
     Kernel.handleInterupts(STEP_MODE_IRQ);
 };
 
+// Handles logic behind exiting step mode by sending an interrupt to the kernel
 Control.exitStepMode = function() {
     TaskBarDisplay.exitStepMode();
     Kernel.handleInterupts(STEP_MODE_IRQ);
 };
 
+// Handles logic behind stepping through the process by sending an interrupt to the kernel
 Control.step = function() {
     Kernel.handleInterupts(STEP_IRQ);
 };
@@ -110,7 +114,9 @@ Control.reset = function() {
 
 // Attaches functions to the three buttons in the taskbar and initializes the console
 $(document).ready(function() {
+    // Handles the logic behind the start-stop button
     $(TaskBarDisplay.startStopElement).click(function() {
+        // Start the OS if the button is styled correctly, otherwise stop it
         if (TaskBarDisplay.startStopElement.hasClass("btn-success")) {
             Control.start(this);
         } else {
@@ -118,11 +124,14 @@ $(document).ready(function() {
         }
     });
     
+    // Handles the logic behind the reset button
     $(TaskBarDisplay.resetElement).click(function() {
         Control.reset();
     });
     
+    // Handles the logic behind the start step mode button
     $(TaskBarDisplay.startStepModeButton).click(function() {
+        // Enter step mode if the button is styled correctly, otherwise exit stop mode
         if (TaskBarDisplay.startStepModeButton.hasClass("btn-success")) {
             Control.enterStepMode();
         } else {
@@ -130,6 +139,7 @@ $(document).ready(function() {
         }
     });
     
+    // Handles logic behind the step button (as opposed to the button that starts step mode)
     $(TaskBarDisplay.stepButton).click(function() {
        Control.step(); 
     });

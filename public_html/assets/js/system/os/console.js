@@ -108,6 +108,7 @@ Console.prototype.handleRequest = function(line) {
     return true;
 };
 
+// Handles the output of the process
 Console.prototype.handleProcessOutput = function(line) {
     this.outputHistory.push(Kernel.shell.promptStr + line);
     this.advanceLine();

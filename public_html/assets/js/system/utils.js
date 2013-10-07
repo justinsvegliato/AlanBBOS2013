@@ -64,6 +64,7 @@ String.prototype.format = String.prototype.f = function() {
     return s;
 };
 
+// Adds padding to a word to ensure that it is of the specified size
 function pad(word, size) {
     var paddedWord = "" + word;
     while (paddedWord.length < size) {
@@ -72,6 +73,7 @@ function pad(word, size) {
     return paddedWord;
 }
 
+// Converts a string to hexidecimal
 function toHexidecimal(str) {
     var hex = '';
     for (var i = 0; i < str.length; i++) {

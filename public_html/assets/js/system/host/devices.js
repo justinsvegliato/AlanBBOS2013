@@ -20,7 +20,6 @@ function hostClockPulse() {
     Kernel.pulse();
 }
 
-
 //
 // Keyboard Interrupt, a HARDWARE Interrupt Request
 //
