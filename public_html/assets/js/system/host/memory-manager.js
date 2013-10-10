@@ -15,7 +15,7 @@ MemoryManager.availableBlocks = _.range(MemoryManager.NUMBER_OF_BLOCKS);
 MemoryManager.allocate = function(pcb) {
     // Set the base and limit of the PCB from an unallocated block
     pcb.base = MemoryManager.availableBlocks.shift() * MemoryManager.BLOCK_SIZE;
-    pcb.limit = pcb.base + MemoryManager.BLOCK_SIZE - 1;
+    pcb.limit = MemoryManager.BLOCK_SIZE - 1;
     
     // Sort the memory just so processes are place in intuitive locations within memory
     // just so future user processes will be placed in the earliest spot
@@ -49,10 +49,10 @@ MemoryManager.write = function(data, location, pcb) {
     var limit = (typeof pcb === 'undefined') ? MemoryManager.MEMORY_SIZE - 1 : pcb.limit;
     
     // If the location is out of bounds, throw an error
-    if (!(location >= base && location <= limit)) {
+    if (!(location >= 0 && location <= limit)) {
         Kernel.handleInterupts(MEMORY_ACCESS_FAULT_IRQ, pcb);
     } else {    
-        MemoryManager.memory.words[location] = new Word(data);
+        MemoryManager.memory.words[location + base] = new Word(data);
     }
 };
 
@@ -64,9 +64,9 @@ MemoryManager.read = function(location, pcb) {
     var limit = (typeof pcb === 'undefined') ? MemoryManager.MEMORY_SIZE - 1 : pcb.limit;
     
     // If the location is out of bounds, throw an error
-    if (!(location >= base && location <= limit)) {
+    if (!(location >= 0 && location <= limit)) {
         Kernel.handleInterupts(MEMORY_ACCESS_FAULT_IRQ, pcb);
     } else {
-        return MemoryManager.memory.words[location].data;
+        return MemoryManager.memory.words[location + base].data;
     }
 };

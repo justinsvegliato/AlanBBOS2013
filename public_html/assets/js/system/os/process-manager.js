@@ -38,7 +38,7 @@ ProcessManager.unload = function(pcb) {
 
 // Executes the specified program by sending an interrupt to the kernel
 ProcessManager.execute = function(pcb) {
-    Kernel.handleInterupts(PROCESS_INITIALIZATION_IRQ, pcb);
+    Kernel.handleInterupts(PROCESS_EXECUTION_IRQ, pcb);
 };
 
 //
@@ -46,8 +46,8 @@ ProcessManager.execute = function(pcb) {
 //
 function ProcessControlBlock() {
     // Increment the process id every time a pcb is constructed
-    this.processId = ProcessControlBlock.lastProcessId++;
-        
+    this.processId = ProcessControlBlock.lastProcessId++;  
+    
     this.programCounter = 0;
     this.instructionRegister = 0;
     this.accumulator = 0;
@@ -72,3 +72,11 @@ function ProcessControlBlock() {
 }
 
 ProcessControlBlock.lastProcessId = 0;
+
+ProcessControlBlock.State = {
+    NEW: "New",
+    RUNNING: "Running",
+    WAITING: "Waiting",
+    READY: "Ready",
+    TERMINATED: "Terminated"
+};
