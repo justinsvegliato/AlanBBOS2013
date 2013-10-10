@@ -14,7 +14,6 @@ function Kernel() {};
 //
 // Properties
 //
-
 Kernel.keyboardDriver = null;
 Kernel.interruptQueue = null;
 Kernel.buffers = null;
@@ -25,6 +24,7 @@ Kernel.stdOut = null;
 Kernel.shell = null;
 Kernel.memoryManager = null;
 Kernel.processManager = null;
+Kernel.systemCallLibrary = null;
 
 Kernel.isStepModeActivated = null;
 
@@ -58,6 +58,7 @@ Kernel.bootstrap = function() {
     
     Kernel.memoryManager = MemoryManager;
     Kernel.processManager = ProcessManager;  
+    Kernel.systemCallLibrary= SystemCallLibrary;
 
     // Enable the OS interrupts 
     // Note: This is not the CPU clock interrupt, as that is done in the host
@@ -150,14 +151,10 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             Kernel.keyboardDriver.isr(params);
             Kernel.stdIn.handleInput();
             break;
-        // The routine for a when a process is initialized
-        case PROCESS_INITIALIZATION_IRQ:
-            Kernel.processInitializationIsr(params);
-            break;
-        // The routine for when a process is terminated
-        case PROCESS_TERMINATION_IRQ:
-            Kernel.processTerminationIsr(params);
-            break;          
+        // The routine for when a process begins execution
+        case PROCESS_EXECUTION_IRQ:
+            Kernel.processExecutionIsr(params);
+            break;       
         // The routine for when a process tries to access an out-of-bounds memory location
         case MEMORY_ACCESS_FAULT_IRQ:
             Kernel.memoryFaultIsr(params);
@@ -201,16 +198,8 @@ Kernel.timerIsr = function() {
 };
 
 // The interrupt service routine that handles the initialization of a process
-Kernel.processInitializationIsr = function(pcb) {
+Kernel.processExecutionIsr = function(pcb) {
     _CPU.start(pcb);
-};
-
-// The interrupt service routine that handles the termination of a process
-Kernel.processTerminationIsr = function(pcb) {
-    // Clean up the cpu and the process manger (set everything back to default settings)
-    _CPU.stop();
-    ProcessManager.unload(pcb);
-    Kernel.console.handleProcessOutput(pcb.output);
 };
 
 // The interrupt service routine that faults that occur during process loading
@@ -235,24 +224,18 @@ Kernel.memoryAccessFaultIsr = function(pcb) {
 
 // The interrupt service routine that handles system calls from a user program
 Kernel.systemCallIsr = function(params) {
-    var xRegister = params[0];
-    var yRegister = params[1];
-    var pcb = params[2];
-    // If the x Register is 1, print the contents of the y Register. If the x register is 2,
-    // print the 00-terminated string starting at the memory location held by the y register
-    if (xRegister === 1) {
-        Kernel.console.putText(yRegister.toString());
-        pcb.output += yRegister.toString();
+    var systemCallId = params[0];
+    var pcb = params[1];
+    var params = params.slice(1);
+    
+    // Retrieve system call function and execute it if it exists
+    var systemCall = Kernel.systemCallLibrary.systemCallInterface[systemCallId];
+    if (systemCall) {
+        systemCall(params);
     } else {
-        var byte = null;
-        var memoryLocation = yRegister;
-        // Keep looping unless we see a "00" (or a 0 since we call parseInt on the value
-        // at the memory location
-        while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== 0) {
-            Kernel.console.putText(String.fromCharCode(byte));
-            pcb.output += String.fromCharCode(byte);
-        }
-    }
+        var message = "Invalid system call id: " + systemCallId;
+        Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, params[0]])
+    }  
 };
 
 // The interrupt service routine that handles stepping through a user process

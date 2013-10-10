@@ -73,7 +73,7 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
             // Scrolls to the highlighted memory location
             MemoryDisplay.memoryDisplay.animate({
                 scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
-            });
+            }, 200);
         }
     }
 };

@@ -18,7 +18,7 @@ Cpu.prototype.start = function(pcb) {
     this.currentProcess = pcb;
     
     // Set the program counter to the first line of the program
-    this.programCounter = pcb.base;
+    this.programCounter = 0;
     
     // Set to true so cycle() is invoked
     this.isExecuting = true;
@@ -42,6 +42,7 @@ Cpu.prototype.initialize = function() {
     // Sets this variable to false to stop cycle() from invocation
     this.isExecuting = false;
     
+    // Reset operationg and current process to nothing to avoid interfering with next process
     this.currentProcess = null;
     this.operation = null;
 };
@@ -128,7 +129,7 @@ Cpu.prototype.nopOperation.argumentLength = 0;
 
 // Exits the process
 Cpu.prototype.brkOperation = function() {
-    Kernel.handleInterupts(PROCESS_TERMINATION_IRQ, this.currentProcess);
+    Kernel.handleInterupts(SYSTEM_CALL_IRQ, [0, this.currentProcess]);
 };
 Cpu.prototype.brkOperation.argumentLength = 0;
 
@@ -171,7 +172,7 @@ Cpu.prototype.incOperation.argumentLength = 2;
 // the Y register.
 Cpu.prototype.sysOperation = function() {
     if (this.xRegister === 1 || this.xRegister === 2) {
-        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [this.xRegister, this.yRegister, this.currentProcess]);
+        Kernel.handleInterupts(SYSTEM_CALL_IRQ, [this.xRegister, this.currentProcess, this.yRegister]);
     } else {
         this.throwError("Invalid parameter for system call");
     }
