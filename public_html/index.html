@@ -19,7 +19,7 @@
         <div id="navigation" class="navbar navbar-default navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <span class="navbar-brand">SvegOS</span>
+                    <span class="navbar-brand">Sveg<strong class="text-primary">OS</strong></span>
                 </div>
 
                 <div id="controls" class="btn-group nav navbar-form navbar-right">
@@ -70,31 +70,24 @@
                                             <div class="panel-heading">
                                                 <h3 class="panel-title">Process Results</h3>
                                             </div>
-
-                                            <table class="table table-striped text-center">
-                                                <thead>
-                                                    <tr>
-                                                        <td>PID</td>                                                  
-                                                        <td>PC</td>
-                                                        <td>IR</td>
-                                                        <td>ACC</td>
-                                                        <td>X</td>
-                                                        <td>Y</td>
-                                                        <td>Z</td>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td id="process-id">0</td>
-                                                        <td id="process-pc-value">0</td>
-                                                        <td id="process-ir-value">0</td>
-                                                        <td id="process-acc-value">0</td>
-                                                        <td id="process-x-value">0</td>
-                                                        <td id="process-y-value">0</td>
-                                                        <td id="process-z-value">0</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                            <div id="process-display">
+                                                <table class="table table-striped text-center">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>PID</td>                                                  
+                                                            <td>PC</td>
+                                                            <td>IR</td>
+                                                            <td>ACC</td>
+                                                            <td>X</td>
+                                                            <td>Y</td>
+                                                            <td>Z</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr><td class="lead text-center" colspan="7">No programs are in execution</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>   
@@ -197,6 +190,7 @@
         <script type="text/javascript" src="assets/js/system/os/canvastext.js"></script>	
         <script type="text/javascript" src="assets/js/system/os/console.js"></script>	
         <script type="text/javascript" src="assets/js/system/os/device-driver.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/cpu-scheduler.js"></script>
         <script type="text/javascript" src="assets/js/system/os/device-driver-keyboard.js"></script>
         <script type="text/javascript" src="assets/js/system/os/shell.js"></script>
         <script type="text/javascript" src="assets/js/system/os/system-call-library.js"></script>
@@ -204,6 +198,6 @@
         <script type="text/javascript" src="assets/js/system/os/process-manager.js"></script>
 
         <!-- Other Routines -->
-        <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>
+        <!--<script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>-->
     </body>
 </html>
