@@ -59,7 +59,7 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
         
         // Highlight all cells that are from the instruction to the current value of the program counter
         for (var i = cpu.programCounter - memoryLocationOffset; i < cpu.programCounter; i++) {
-            $("#memory-cell-" + i).addClass("highlighted-location");
+            $("#memory-cell-" + (i + CpuScheduler.currentProcess.base)).addClass("highlighted-location");
         }
         
         // If step mode is activated, we should scroll to the location. Otherise, we should

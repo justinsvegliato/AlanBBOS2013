@@ -3,14 +3,14 @@ function SystemCallLibrary() {};
 
 // Terminates the process
 SystemCallLibrary.terminateProcess = function(params) {
-    // Clean up the cpu and the process manger (set everything back to default settings)
+    // Clean up the cpu and the process manager (set everything back to default settings)
     var pcb = params[0];
     
+    // Remove the process from the CPU scheduler
     if (CpuScheduler.currentProcess.processId === pcb.processId) {
         CpuScheduler.currentProcess = null;
+        CpuScheduler.cycle = 0; 
         _CPU.stop();
-        CpuScheduler.cycle = 0;
-        
     } else {
         for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
             var process = CpuScheduler.readyQueue.dequeue();

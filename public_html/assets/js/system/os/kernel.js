@@ -181,6 +181,9 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
         case PROCESS_LOAD_FAULT_IRQ:
             Kernel.processLoadFaultIsr(params);
             break;
+        case CONTEXT_SWITCH_IRQ:
+            Kernel.contextSwitchIsr();
+            break;
         // Trap if the interrupt is not recognized
         default:
             Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
@@ -266,6 +269,19 @@ Kernel.processFaultIsr = function(params) {
     
     Kernel.trace(message);
 };
+
+Kernel.contextSwitchIsr = function() {
+    Kernel.trace("Scheduling new process");
+    if (CpuScheduler.currentProcess) {
+        _CPU.stop();
+        CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
+        CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
+    }   
+    CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();
+    CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
+    _CPU.start(CpuScheduler.currentProcess);
+    CpuScheduler.cycle = 0;
+}
 
 // Handles messages being outputted by the kernal
 Kernel.trace = function(msg) {
