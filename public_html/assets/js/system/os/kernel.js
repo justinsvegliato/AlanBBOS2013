@@ -103,7 +103,7 @@ Kernel.pulse = function() {
      * This is NOT the same as a TIMER, which causes an interrupt and is handled like other 
      * interrupts. This, on the other hand, is the clock pulse from the hardware (or host) 
      * that tells the kernel that it has to look for interrupts and process them if it finds any.  
-     */   
+     */      
     
     // Handle the interrupt if there is an interrupt on the queue or otherwise check if the
     // CPU is currently processing. The kernel remains idle if neither case applies.
@@ -111,13 +111,15 @@ Kernel.pulse = function() {
         // TODO: Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
         var interrupt = Kernel.interruptQueue.dequeue();
         Kernel.handleInterupts(interrupt.irq, interrupt.params);
-        Control.update();
     } else if (_CPU.isExecuting && !Kernel.isStepModeActivated) {
+        CpuScheduler.cycle++;
         _CPU.cycle();             
-        Control.update();
     } else {
         Kernel.trace("Idle");
     } 
+    
+    Control.update();
+    CpuScheduler.schedule();
 };
 
 //
@@ -157,7 +159,7 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             break;       
         // The routine for when a process tries to access an out-of-bounds memory location
         case MEMORY_ACCESS_FAULT_IRQ:
-            Kernel.memoryFaultIsr(params);
+            Kernel.memoryAccessFaultIsr(params);
             break;
         // The routine for a system call from a user program
         case SYSTEM_CALL_IRQ:
@@ -199,7 +201,7 @@ Kernel.timerIsr = function() {
 
 // The interrupt service routine that handles the initialization of a process
 Kernel.processExecutionIsr = function(pcb) {
-    _CPU.start(pcb);
+    CpuScheduler.readyQueue.enqueue(pcb);
 };
 
 // The interrupt service routine that faults that occur during process loading
@@ -225,7 +227,6 @@ Kernel.memoryAccessFaultIsr = function(pcb) {
 // The interrupt service routine that handles system calls from a user program
 Kernel.systemCallIsr = function(params) {
     var systemCallId = params[0];
-    var pcb = params[1];
     var params = params.slice(1);
     
     // Retrieve system call function and execute it if it exists

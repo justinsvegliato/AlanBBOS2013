@@ -5,9 +5,27 @@ function SystemCallLibrary() {};
 SystemCallLibrary.terminateProcess = function(params) {
     // Clean up the cpu and the process manger (set everything back to default settings)
     var pcb = params[0];
-    _CPU.stop();
-    ProcessManager.unload(pcb);
-    Kernel.console.handleProcessOutput(pcb.output);
+    
+    if (CpuScheduler.currentProcess.processId === pcb.processId) {
+        CpuScheduler.currentProcess = null;
+        _CPU.stop();
+        CpuScheduler.cycle = 0;
+        
+    } else {
+        for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
+            var process = CpuScheduler.readyQueue.dequeue();
+            if (process.processId !== pcb.processId) {
+               CpuScheduler.readyQueue.enqueue(process);
+            }
+        }
+    }
+    
+    pcb.state = ProcessControlBlock.State.TERMINATED;
+    ProcessManager.unload(pcb);  
+    
+    if (CpuScheduler.readyQueue.getSize() === 0) {
+        Kernel.console.handleProcessOutput(pcb.output);
+    }
 };
 
 // Print the contents of the y Register.
@@ -26,7 +44,7 @@ SystemCallLibrary.printNullTerminatedString = function(params) {
     var memoryLocation = yRegister;
     // Keep looping unless we see a "00" (or a 0 since we call parseInt on the value
     // at the memory location
-    while ((byte = parseInt(MemoryManager.read(memoryLocation++), 16)) !== 0) {
+    while ((byte = parseInt(MemoryManager.read(memoryLocation++, pcb), 16)) !== 0) {
         Kernel.console.putText(String.fromCharCode(byte));
         pcb.output += String.fromCharCode(byte);
     }
