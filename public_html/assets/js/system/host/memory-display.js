@@ -30,7 +30,7 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
             var location = blockOffset + offset;
             
             // The first cell will be the row marker, namely 0x0F8.
-            var label = "0x" + pad(location.toString(16), 3).toUpperCase();
+            var label = "0x" + pad(location.toString(16), 3, "0").toUpperCase();
             var cells = MemoryDisplay.cell.format("memory-row-" + location, label);
 
             // Iterate through each cell of the row
