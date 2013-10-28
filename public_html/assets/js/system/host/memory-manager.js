@@ -4,8 +4,8 @@
 
 function MemoryManager() {};
 
-MemoryManager.MEMORY_SIZE = 256;
-MemoryManager.NUMBER_OF_BLOCKS = 1;
+MemoryManager.MEMORY_SIZE = 768;
+MemoryManager.NUMBER_OF_BLOCKS = 3;
 MemoryManager.BLOCK_SIZE = MemoryManager.MEMORY_SIZE / MemoryManager.NUMBER_OF_BLOCKS;
 
 MemoryManager.memory = new Memory(MemoryManager.MEMORY_SIZE);
