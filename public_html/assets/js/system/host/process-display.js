@@ -4,25 +4,48 @@
 
 function ProcessDisplay() {};
 
-// The elements that correspond to each pcb component
-ProcessDisplay.processId = $("#process-id");
-ProcessDisplay.programCounterValue = $("#process-pc-value");
-ProcessDisplay.instructionRegisterValue = $("#process-ir-value");
-ProcessDisplay.accumulatorValue = $("#process-acc-value");
-ProcessDisplay.xRegisterValue = $("#process-x-value");
-ProcessDisplay.yRegisterValue = $("#process-y-value");
-ProcessDisplay.zFlagValue = $("#process-z-value");
+// The elements that correspond to the ProcessDisplay
+ProcessDisplay.processDisplay = $("#process-display");
+ProcessDisplay.processDisplayTable = $("#process-display table tbody"); 
+
+ProcessDisplay.row = "<tr>\
+                          <td id='process-id'>{0}</td>\
+                          <td id='process-pc-value'>{1}</td>\
+                          <td id='process-ir-value'>{2}</td>\
+                          <td id='process-acc-value'>{3}</td>\
+                          <td id='process-x-value'>{3}</td>\
+                          <td id='process-y-value'>{4}</td>\
+                          <td id='process-z-value'>{5}</td>\
+                      </tr>"
 
 // Updates each componenent of the process within the display
-ProcessDisplay.update = function(cpu) {
-    // Only update the process display if the cpu is currently handling a process
-    if (cpu.currentProcess !== null) {
-        ProcessDisplay.processId.html(cpu.currentProcess.processId);
-        ProcessDisplay.programCounterValue.html(cpu.currentProcess.programCounter);
-        ProcessDisplay.instructionRegisterValue.html(cpu.currentProcess.instructionRegister.toString().toUpperCase());
-        ProcessDisplay.accumulatorValue.html(cpu.currentProcess.accumulator);
-        ProcessDisplay.xRegisterValue.html(cpu.currentProcess.xRegister);
-        ProcessDisplay.yRegisterValue.html(cpu.currentProcess.yRegister);
-        ProcessDisplay.zFlagValue.html(cpu.currentProcess.zFlag);    
+ProcessDisplay.update = function(cpuScheduler) {    
+    var displayProcess = function(process) {
+        var row = ProcessDisplay.row.format(
+            process.processId,
+            process.programCounter,
+            process.instructionRegister,
+            process.accumulator,
+            process.xRegister,
+            process.yRegister,
+            process.zFlag
+        );
+        ProcessDisplay.processDisplayTable.append(row);
+    };
+        
+    ProcessDisplay.processDisplayTable.empty();
+    
+    if (cpuScheduler.currentProcess !== null) {
+        displayProcess(cpuScheduler.currentProcess);
+    }
+    
+    for (var i = 0; i < cpuScheduler.readyQueue.getSize(); i++) {
+        var process = CpuScheduler.readyQueue.dequeue();
+        displayProcess(process);
+        CpuScheduler.readyQueue.enqueue(process);
+    }
+    
+    if (!ProcessDisplay.processDisplayTable.html()) {
+        ProcessDisplay.processDisplayTable.html("<tr><td class='lead text-center' colspan='7'>No programs are in execution</td></tr>");
     }
 };
