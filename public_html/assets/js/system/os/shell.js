@@ -154,6 +154,7 @@ Shell.prototype.init = function() {
 
     // The 'ps' command
     shellCommand = new ShellCommand("ps", "Shows all active processes", function(args) {
+        // Display a process to the cnsole
         var displayProcess = function(process) {
             var message = "{0} {1} {2} {3} {4} {5} {6}".format(
                 pad(process.processId, 4, " "), 
@@ -167,8 +168,9 @@ Shell.prototype.init = function() {
             Kernel.stdIn.advanceLine();
         };
 
-        
-        if (CpuScheduler.currentProcess) {                        
+        // Display the process if there is one
+        if (CpuScheduler.currentProcess) {    
+            // Prints out the header or top row of a column
             var header = "{0} {1} {2} {3} {4} {5} {6}".format(
                 pad("PID", 4, " "), 
                 pad("PC", 4, " "), 

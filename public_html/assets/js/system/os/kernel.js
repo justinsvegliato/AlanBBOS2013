@@ -118,7 +118,10 @@ Kernel.pulse = function() {
         Kernel.trace("Idle");
     } 
     
+    // Update the displays
     Control.update();
+    
+    // Check if a new process should start execution
     CpuScheduler.schedule();
 };
 
@@ -258,30 +261,35 @@ Kernel.processFaultIsr = function(params) {
     var message = params[0];
     var pcb = params[1];
     
-    // Restore the default settings of the process manager and cpu
-    _CPU.stop();
-    ProcessManager.unload(pcb);
+    // Terminate the process
+    SystemCallLibrary.terminateProcess([pcb]); 
     
     // Do some output to alert the user of the error
     Kernel.console.handleResponse(message);
     Kernel.console.advanceLine();
-    Kernel.console.putText(Kernel.shell.promptStr);  
+    Kernel.console.putText(Kernel.shell.promptStr);       
     
     Kernel.trace(message);
 };
 
 Kernel.contextSwitchIsr = function() {
+    // This code handles switching the processes
     Kernel.trace("Scheduling new process");
+    
+    // If there is a process being executed, stop it, set the state to waiting, and put it
+    // back on the queue
     if (CpuScheduler.currentProcess) {
         _CPU.stop();
         CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
         CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
     }   
+    
+    // Load the new process regardless
     CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
     _CPU.start(CpuScheduler.currentProcess);
     CpuScheduler.cycle = 0;
-}
+};
 
 // Handles messages being outputted by the kernal
 Kernel.trace = function(msg) {

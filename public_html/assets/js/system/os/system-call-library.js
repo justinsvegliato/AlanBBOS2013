@@ -6,7 +6,10 @@ SystemCallLibrary.terminateProcess = function(params) {
     // Clean up the cpu and the process manager (set everything back to default settings)
     var pcb = params[0];
     
-    // Remove the process from the CPU scheduler
+    // Remove the process from the CPU scheduler. If is the process currently being executed,
+    // we must stop it and set the cycle number. On the other hand, if it's not being executed,
+    // just removed it from the ready queue. This is a sequential search provided that the
+    // ready queue is a queue. This would be faster with a dictionary or something like that.
     if (CpuScheduler.currentProcess.processId === pcb.processId) {
         CpuScheduler.currentProcess = null;
         CpuScheduler.cycle = 0; 
@@ -20,12 +23,14 @@ SystemCallLibrary.terminateProcess = function(params) {
         }
     }
     
+    // Terminate the process and unload it from the process manager (which de-allocates memory)
     pcb.state = ProcessControlBlock.State.TERMINATED;
     ProcessManager.unload(pcb);  
-    
-    if (CpuScheduler.readyQueue.getSize() === 0) {
-        Kernel.console.handleProcessOutput(pcb.output);
-    }
+
+    // Hmmm... Why did I put this code here?
+//    if (CpuScheduler.readyQueue.getSize() === 0) {
+//        Kernel.console.handleProcessOutput(pcb.output);
+//    }
 };
 
 // Print the contents of the y Register.
@@ -42,6 +47,7 @@ SystemCallLibrary.printNullTerminatedString = function(params) {
     var yRegister = params[1];
     var byte = null;
     var memoryLocation = yRegister;
+    
     // Keep looping unless we see a "00" (or a 0 since we call parseInt on the value
     // at the memory location
     while ((byte = parseInt(MemoryManager.read(memoryLocation++, pcb), 16)) !== 0) {

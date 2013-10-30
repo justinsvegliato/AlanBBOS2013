@@ -73,8 +73,10 @@ function ProcessControlBlock() {
     };
 }
 
+// Keeps track of the last process id
 ProcessControlBlock.lastProcessId = 0;
 
+// Enum that contains all possible states of a process
 ProcessControlBlock.State = {
     NEW: "New",
     RUNNING: "Running",
