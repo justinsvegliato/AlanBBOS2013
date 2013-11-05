@@ -30,18 +30,20 @@ Shell.prototype.init = function() {
 
     // The 'help' command
     shellCommand = new ShellCommand("help", "- Lists all available commands", function() {
-        Kernel.stdIn.handleResponse("Commands:");
-        Kernel.stdIn.advanceLine();
+        if (Kernel.stdIn.handleResponse("Commands:")) {
+            Kernel.stdIn.advanceLine();
+        }
 
         // Iterate through every available command
         for (var i = 0; i < Kernel.shell.commandList.length; i++) {
             // Construct and print the command entry in the help message
             var command = Kernel.shell.commandList[i].getCommand();
             var description = Kernel.shell.commandList[i].getDescription();
-            Kernel.stdIn.handleResponse("  " + command + " " + description);
 
             // Advance the line if the message was printed to the console
-            Kernel.stdIn.advanceLine();
+            if (Kernel.stdIn.handleResponse("  " + command + " " + description)) {
+                Kernel.stdIn.advanceLine();
+            }
         }
     });
     this.commandList.push(shellCommand);
@@ -56,8 +58,8 @@ Shell.prototype.init = function() {
     // The 'cls' command
     shellCommand = new ShellCommand("cls", "- Clears the screen and resets the cursor position", function() {
         Kernel.stdIn.clearScreen();
-        Kernel.stdIn.resetXY();
-        Kernel.stdIn.outputHistory = [];
+        Kernel.stdIn.resetPosition();
+        Kernel.stdIn.resetSize();
     });
     this.commandList.push(shellCommand);
 
@@ -373,7 +375,7 @@ Shell.prototype.execute = function(fn, args) {
     // Executes the command by sending the first-order function arguments
     fn(args);
 
-    // Advance the line and replcae the prompt if anything was printed to the screen
+    // Advance the line and replace the prompt if anything was printed to the screen
     if (Kernel.stdIn.xPosition > 0) {
         Kernel.stdIn.advanceLine();
     }

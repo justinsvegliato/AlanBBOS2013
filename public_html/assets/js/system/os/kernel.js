@@ -247,6 +247,10 @@ Kernel.systemCallIsr = function(params) {
 
 // The interrupt service routine that handles stepping through a user process
 Kernel.stepIsr = function() {
+    // Increment the cycle and check if a new process should be switched in
+    CpuScheduler.cycle++;
+    CpuScheduler.schedule();
+    
     // Just simply call cycle() to handle the next instruction
     _CPU.cycle(); 
 };

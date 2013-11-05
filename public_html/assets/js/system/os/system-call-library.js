@@ -25,12 +25,7 @@ SystemCallLibrary.terminateProcess = function(params) {
     
     // Terminate the process and unload it from the process manager (which de-allocates memory)
     pcb.state = ProcessControlBlock.State.TERMINATED;
-    ProcessManager.unload(pcb);  
-
-    // Hmmm... Why did I put this code here?
-//    if (CpuScheduler.readyQueue.getSize() === 0) {
-//        Kernel.console.handleProcessOutput(pcb.output);
-//    }
+    ProcessManager.unload(pcb);
 };
 
 // Print the contents of the y Register.

@@ -12,8 +12,21 @@ ConsoleDisplay.drawingContext = null;
 ConsoleDisplay.FONT_FAMILY = "arial";
 ConsoleDisplay.FONT_SIZE = 13;
 ConsoleDisplay.FONT_HEIGHT_MARGIN = 4;
-ConsoleDisplay.HEIGHT = 505;
-ConsoleDisplay.WIDTH = 515;
+
+// The height and width of the container
+ConsoleDisplay.CONTAINER_HEIGHT = 535;
+ConsoleDisplay.CONTAINER_WIDTH = 515;
+
+// The height and width of the canvas
+ConsoleDisplay.CANVAS_HEIGHT = 510;
+ConsoleDisplay.CANVAS_WIDTH = 515;
+
+// The margin of the canvas within the container
+ConsoleDisplay.MARGIN_OFFSET = 20;
+
+// The elements that correspond to the display
+ConsoleDisplay.canvasElement = $("#display");
+ConsoleDisplay.canvasContainer = $("#display-container");
 
 // Creates the canvas by getting the canvas via the ID and the context
 ConsoleDisplay.createCanvas = function() {
@@ -26,7 +39,6 @@ ConsoleDisplay.createCanvas = function() {
 // after the operating system has been initialized.
 ConsoleDisplay.enterActiveState = function() {
     $("#display").focus();
-    // TODO: More...
 };
 
 // Handles the transition of the display to the error state. The error state occurs when 

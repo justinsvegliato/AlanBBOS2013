@@ -132,6 +132,8 @@ canvas:focus {
 #display-container {
     height: 535px;
     width: 515px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 #memory-display {
     height: 129px;
@@ -151,6 +153,9 @@ canvas:focus {
 }
 #process-display {
     height: 129px;
-    overflow-x: hidden;
+    overflow-x: scroll;
     overflow-y: scroll;
+}
+#storage {
+    display: none;
 }
