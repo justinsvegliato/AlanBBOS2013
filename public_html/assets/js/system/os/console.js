@@ -80,13 +80,17 @@ Console.prototype.handleInput = function() {
 
 // Displays the specified text on the screen
 Console.prototype.putText = function(text) {
-    if (text) {
+    if (text) {               
         // Draw the text at the current X and Y coordinates
         ConsoleDisplay.drawingContext.drawText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, this.xPosition, this.yPosition, text);
-
-        // Move the current X position forward
-        var offset = ConsoleDisplay.drawingContext.measureText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, text);
-        this.xPosition += offset;
+        
+        if (this.xPosition >= ConsoleDisplay.CANVAS_WIDTH - ConsoleDisplay.MARGIN_OFFSET * 2) {
+            this.advanceLine();
+        } else {
+            // Move the current X position forward
+            var offset = ConsoleDisplay.drawingContext.measureText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, text);
+            this.xPosition += offset;
+        }            
     }
 };
     
