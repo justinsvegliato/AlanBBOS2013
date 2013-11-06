@@ -113,7 +113,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'quantum' command
-    shellCommand = new ShellCommand("quantum", "<integer> - Changes the quantum of the CPU scheduler", function(args) {
+    shellCommand = new ShellCommand("quantum", "<integer> - Changes the CPU quantum", function(args) {
         if (args.length > 0) {
             CpuScheduler.quantum = parseInt(args[0]);
         } else {
@@ -307,7 +307,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'runall' command
-    shellCommand = new ShellCommand("runall", "Executes all programs", function(args) {
+    shellCommand = new ShellCommand("runall", "- Executes all programs", function(args) {
         // Execute all available processes
         if (ProcessManager.processControlBlocks.length) {
             Kernel.stdIn.handleResponse("Unrecognized process ID");
