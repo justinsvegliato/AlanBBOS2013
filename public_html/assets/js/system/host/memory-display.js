@@ -64,16 +64,18 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
         
         // If step mode is activated, we should scroll to the location. Otherise, we should
         // jump to the location immediately.
-        if (!isStepModeActivated) { 
-            // Jumps to the highlighted memory location
-            MemoryDisplay.memoryDisplay.scrollTop(
-                $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
-            );
-        } else {
-            // Scrolls to the highlighted memory location
-            MemoryDisplay.memoryDisplay.animate({
-                scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
-            }, 200);
+        if (CpuScheduler.currentProcess) {
+            if (!isStepModeActivated) { 
+                // Jumps to the highlighted memory location
+                MemoryDisplay.memoryDisplay.scrollTop(
+                    $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+                );
+            } else {
+                // Scrolls to the highlighted memory location
+                MemoryDisplay.memoryDisplay.animate({
+                    scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+                }, 200);
+            }
         }
     }
 };

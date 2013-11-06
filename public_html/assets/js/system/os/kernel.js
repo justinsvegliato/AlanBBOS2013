@@ -217,9 +217,8 @@ Kernel.processLoadFaultIsr = function(message) {
 
 // The interrupt service routine that handles memory access errors
 Kernel.memoryAccessFaultIsr = function(pcb) {
-    // Restore everything back to default settings
-    _CPU.stop();
-    ProcessManager.unload(pcb);  
+    // Terminate the process
+    SystemCallLibrary.terminateProcess([pcb]);  
     
     // Do some output to alert the use
     var message = "Memory access error from process " + pcb.processId;
