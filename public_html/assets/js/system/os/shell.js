@@ -223,7 +223,7 @@ Shell.prototype.init = function() {
             }
 
             // Split the input space and interate through each command
-            var components = program.split(" ");
+            var components = program.split(/\s+/);
             for (var i = 0; i < components.length; i++) {
                 // Print an error if the instruction contains an invalid character (non-hexidecimal)
                 if (!components[i].match(/^[a-f0-9]+$/i)) {

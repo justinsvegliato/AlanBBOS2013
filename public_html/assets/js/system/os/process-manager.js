@@ -19,7 +19,7 @@ ProcessManager.load = function(program) {
         MemoryManager.allocate(pcb);               
 
         // Load the program into memory
-        var components = program.split(" ");
+        var components = program.split(/\s+/);
         for (var i = 0; i < components.length; i++) {
             MemoryManager.write(components[i], i + pcb.base);
         }
