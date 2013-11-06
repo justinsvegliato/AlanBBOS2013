@@ -19,7 +19,7 @@ ConsoleDisplay.CONTAINER_WIDTH = 515;
 
 // The height and width of the canvas
 ConsoleDisplay.CANVAS_HEIGHT = 510;
-ConsoleDisplay.CANVAS_WIDTH = 515;
+ConsoleDisplay.CANVAS_WIDTH = 505;
 
 // The margin of the canvas within the container
 ConsoleDisplay.MARGIN_OFFSET = 20;
