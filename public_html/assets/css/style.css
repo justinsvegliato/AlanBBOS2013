@@ -132,6 +132,8 @@ canvas:focus {
 #display-container {
     height: 535px;
     width: 515px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 #memory-display {
     height: 129px;
@@ -142,10 +144,18 @@ canvas:focus {
     margin-top: 20px;
 }
 #taProgramInput {
-    height: 169px;
+    height: 112px;
 }
 .highlighted-location {
     font-weight: bolder;
     color: #b31b1b;
     text-shadow: #737072 0.075em 0.075em 0.1em;
+}
+#process-display {
+    height: 129px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+#storage {
+    display: none;
 }

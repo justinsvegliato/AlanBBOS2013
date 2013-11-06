@@ -30,7 +30,7 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
             var location = blockOffset + offset;
             
             // The first cell will be the row marker, namely 0x0F8.
-            var label = "0x" + pad(location.toString(16), 3).toUpperCase();
+            var label = "0x" + pad(location.toString(16), 3, "0").toUpperCase();
             var cells = MemoryDisplay.cell.format("memory-row-" + location, label);
 
             // Iterate through each cell of the row
@@ -59,21 +59,23 @@ MemoryDisplay.update = function(memoryManager, cpu, isStepModeActivated) {
         
         // Highlight all cells that are from the instruction to the current value of the program counter
         for (var i = cpu.programCounter - memoryLocationOffset; i < cpu.programCounter; i++) {
-            $("#memory-cell-" + i).addClass("highlighted-location");
+            $("#memory-cell-" + (i + CpuScheduler.currentProcess.base)).addClass("highlighted-location");
         }
         
         // If step mode is activated, we should scroll to the location. Otherise, we should
         // jump to the location immediately.
-        if (!isStepModeActivated) { 
-            // Jumps to the highlighted memory location
-            MemoryDisplay.memoryDisplay.scrollTop(
-                $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
-            );
-        } else {
-            // Scrolls to the highlighted memory location
-            MemoryDisplay.memoryDisplay.animate({
-                scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
-            }, 200);
+        if (CpuScheduler.currentProcess) {
+            if (!isStepModeActivated) { 
+                // Jumps to the highlighted memory location
+                MemoryDisplay.memoryDisplay.scrollTop(
+                    $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+                );
+            } else {
+                // Scrolls to the highlighted memory location
+                MemoryDisplay.memoryDisplay.animate({
+                    scrollTop: $(".highlighted-location").offset().top - MemoryDisplay.memoryDisplay.offset().top + MemoryDisplay.memoryDisplay.scrollTop()
+                }, 200);
+            }
         }
     }
 };

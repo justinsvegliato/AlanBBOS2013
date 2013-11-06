@@ -22,6 +22,7 @@ var STEP_IRQ = 5;
 var STEP_MODE_IRQ = 6;
 var PROCESS_FAULT_IRQ = 7;
 var PROCESS_LOAD_FAULT_IRQ = 8;
+var CONTEXT_SWITCH_IRQ = 9;
 
 //
 // Global Variables

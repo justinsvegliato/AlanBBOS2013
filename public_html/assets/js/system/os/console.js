@@ -8,16 +8,12 @@
  */
 
 // Instantiates the console with values derived from the display driver
-function Console() {
-    // Properties
-    this.font = ConsoleDisplay.FONT_FAMILY;
-    this.fontSize = ConsoleDisplay.FONT_SIZE;
-    this.fontHeightMargin = ConsoleDisplay.FONT_HEIGHT_MARGIN;
+function Console() { 
+    // These variables keep track of the current location on the screen
     this.xPosition = 0;
-    this.yPosition = ConsoleDisplay.FONT_SIZE;
+    this.yPosition = ConsoleDisplay.FONT_SIZE;   
 
     this.buffer = "";
-    this.outputHistory = [];
     this.filters = [];
     
     this.init();
@@ -30,19 +26,24 @@ function Console() {
 // Initializes the console by reseting the coordinates and clearing the screen
 Console.prototype.init = function() {
     this.clearScreen();
-    this.resetXY();
+    this.resetPosition();
 };
 
 // Clears the screen
 Console.prototype.clearScreen = function() {
-    // Draws a rectangle the size of the canvas
     ConsoleDisplay.drawingContext.clearRect(0, 0, ConsoleDisplay.canvas.width, ConsoleDisplay.canvas.height);
 };
 
 // Resets the XY positions
-Console.prototype.resetXY = function() {
+Console.prototype.resetPosition = function() {
     this.xPosition = 0;
-    this.yPosition = this.fontSize;
+    this.yPosition = ConsoleDisplay.FONT_SIZE;
+};
+
+// Resets the size of the canvas (this is called if cls is typed into the console)
+Console.prototype.resetSize = function() {
+    ConsoleDisplay.canvasElement.attr('height', ConsoleDisplay.CANVAS_HEIGHT);
+    ConsoleDisplay.canvasElement.attr('width', ConsoleDisplay.CANVAS_WIDTH);
 };
 
 // Handles the user input 
@@ -55,7 +56,6 @@ Console.prototype.handleInput = function() {
         // Check if it's enter, backspace, left or right arrow, and lastly if it's any other key
         if (chr === String.fromCharCode(13)) {
             // Handle the input and reset the buffer since the input was handled
-            this.handleRequest(this.buffer);
             Kernel.shell.handleInput(this.buffer);
             this.buffer = "";
         } else if (chr === String.fromCharCode(8)) {
@@ -80,13 +80,17 @@ Console.prototype.handleInput = function() {
 
 // Displays the specified text on the screen
 Console.prototype.putText = function(text) {
-    if (text) {
+    if (text) {               
         // Draw the text at the current X and Y coordinates
-        ConsoleDisplay.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, text);
-
-        // Move the current X position forward
-        var offset = ConsoleDisplay.drawingContext.measureText(this.font, this.fontSize, text);
-        this.xPosition = this.xPosition + offset;
+        ConsoleDisplay.drawingContext.drawText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, this.xPosition, this.yPosition, text);
+        
+        if (this.xPosition >= ConsoleDisplay.CANVAS_WIDTH - ConsoleDisplay.MARGIN_OFFSET * 2) {
+            this.advanceLine();
+        } else {
+            // Move the current X position forward
+            var offset = ConsoleDisplay.drawingContext.measureText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, text);
+            this.xPosition += offset;
+        }            
     }
 };
     
@@ -94,25 +98,12 @@ Console.prototype.putText = function(text) {
 Console.prototype.removeText = function(text) {
     if (text !== "") {
         // Move the current X position backward
-        var offset = ConsoleDisplay.drawingContext.measureText(this.font, this.fontSize, text);
+        var offset = ConsoleDisplay.drawingContext.measureText(ConsoleDisplay.FONT_FAMILY, ConsoleDisplay.FONT_SIZE, text);
         this.xPosition = this.xPosition - offset;
 
         // Draw a rectangle over the last character in the buffer
-        ConsoleDisplay.drawingContext.clearRect(this.xPosition, this.yPosition - this.fontSize - 1, offset, this.fontSize * 2);
+        ConsoleDisplay.drawingContext.clearRect(this.xPosition, this.yPosition - ConsoleDisplay.FONT_SIZE - 1, offset, ConsoleDisplay.FONT_SIZE * 2);
     }
-};
-
-// Handles a request, where a request is merely just user input
-Console.prototype.handleRequest = function(line) {
-    this.outputHistory.push(Kernel.shell.promptStr + line);
-    return true;
-};
-
-// Handles the output of the process
-Console.prototype.handleProcessOutput = function(line) {
-    this.outputHistory.push(Kernel.shell.promptStr + line);
-    this.advanceLine();
-    this.putText(Kernel.shell.promptStr);
 };
 
 // Checks if the response, i.e., the data returned from the execution of a command, is valid
@@ -132,8 +123,7 @@ Console.prototype.isValid = function(line) {
 Console.prototype.handleResponse = function(line) {
     // Only print the command if it is valid according to the currently specified filters
     if (line && this.isValid(line)) {
-        this.putText(line);
-        this.outputHistory.push(line);                        
+        this.putText(line);                      
     }
     return this.isValid(line);
 };
@@ -141,31 +131,35 @@ Console.prototype.handleResponse = function(line) {
 // Advances the line and scrolls the screen if necessary
 Console.prototype.advanceLine = function() {
     if (this.filters.length === 0 || (this.filters.length > 0 && this.xPosition > 0)) {
-        this.yPosition += this.fontSize + this.fontHeightMargin;
+        this.yPosition += ConsoleDisplay.FONT_SIZE + ConsoleDisplay.FONT_HEIGHT_MARGIN;
     }
     this.xPosition = 0;
+        
+      
     this.handleScrolling();
 };
 
-// Handles the scrolling of the screen by using an array that keeps track of all commands
-// that have been entered. 
+// Handle scrolling the screen downward if there is more text than what fits on the canvas
 Console.prototype.handleScrolling = function () {
-    // The max line length is the number of lines that can fit onto the canvas
-    var maxLineLength = Math.floor(ConsoleDisplay.HEIGHT / (this.fontSize + this.fontHeightMargin));
-    
-    // If the output history is longer than the number of lines that can fit onto the canvas
-    if (this.outputHistory.length > maxLineLength) {
-        // Reduce output history by the differential amount
-        this.outputHistory = this.outputHistory.slice(this.outputHistory.length - maxLineLength - 1);
+    // Scroll down if the y position is greater than the height of the container
+    if (this.yPosition > ConsoleDisplay.CONTAINER_HEIGHT - ConsoleDisplay.MARGIN_OFFSET) {
+        // Store the current contents of the canvas into a storage canvas
+        var buffer = document.getElementById('storage');
+        buffer.width = ConsoleDisplay.canvas.width;
+        buffer.height = ConsoleDisplay.canvas.height;
+        buffer.getContext('2d').drawImage(ConsoleDisplay.canvas, 0, 0);
         
-        // Clear the screen and reset the coordinates
-        this.resetXY();
+        // Change the height of the div so the container can scroll down
+        var height = +ConsoleDisplay.canvasElement.attr('height') + ConsoleDisplay.FONT_SIZE + ConsoleDisplay.FONT_HEIGHT_MARGIN;
+        ConsoleDisplay.canvasElement.attr('height', height);
+
+        // Clear the screen to put more text on the screen
         this.clearScreen();
         
-        // Redraw the screen with the adjusted output history
-        for (var i = 1; i < this.outputHistory.length; i++) {
-            ConsoleDisplay.drawingContext.drawText(this.font, this.fontSize, this.xPosition, this.yPosition, this.outputHistory[i]);
-            this.yPosition += this.fontSize + this.fontHeightMargin;
-        }
+        // Draw the image from the storage canvas onto the viewable canvas
+        ConsoleDisplay.canvas.getContext('2d').drawImage(buffer, 0, 0);
+       
+        // Scroll to the bottom of the canvas
+        ConsoleDisplay.canvasContainer.scrollTop(ConsoleDisplay.canvasElement.height());
     }
 };

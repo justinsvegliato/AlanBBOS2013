@@ -30,18 +30,20 @@ Shell.prototype.init = function() {
 
     // The 'help' command
     shellCommand = new ShellCommand("help", "- Lists all available commands", function() {
-        Kernel.stdIn.handleResponse("Commands:");
-        Kernel.stdIn.advanceLine();
-        
+        if (Kernel.stdIn.handleResponse("Commands:")) {
+            Kernel.stdIn.advanceLine();
+        }
+
         // Iterate through every available command
         for (var i = 0; i < Kernel.shell.commandList.length; i++) {
             // Construct and print the command entry in the help message
             var command = Kernel.shell.commandList[i].getCommand();
             var description = Kernel.shell.commandList[i].getDescription();
-            Kernel.stdIn.handleResponse("  " + command + " " + description);
 
             // Advance the line if the message was printed to the console
-            Kernel.stdIn.advanceLine();
+            if (Kernel.stdIn.handleResponse("  " + command + " " + description)) {
+                Kernel.stdIn.advanceLine();
+            }
         }
     });
     this.commandList.push(shellCommand);
@@ -56,8 +58,8 @@ Shell.prototype.init = function() {
     // The 'cls' command
     shellCommand = new ShellCommand("cls", "- Clears the screen and resets the cursor position", function() {
         Kernel.stdIn.clearScreen();
-        Kernel.stdIn.resetXY();
-        Kernel.stdIn.outputHistory = [];
+        Kernel.stdIn.resetPosition();
+        Kernel.stdIn.resetSize();
     });
     this.commandList.push(shellCommand);
 
@@ -65,12 +67,12 @@ Shell.prototype.init = function() {
     shellCommand = new ShellCommand("man", "<topic> - Displays the manual page for <topic>", function(args) {
         if (args.length > 0) {
             var topic = args[0];
-                switch (topic) {
-                case "help":
-                    Kernel.stdIn.handleResponse("Lists all available commands");
-                    break;
-                default:
-                    Kernel.stdIn.handleResponse("No manual entry for " + args[0]);
+            switch (topic) {
+            case "help":
+                Kernel.stdIn.handleResponse("Lists all available commands");
+                break;
+            default:
+                Kernel.stdIn.handleResponse("No manual entry for " + args[0]);
             }
         } else {
             Kernel.stdIn.handleResponse("Usage: man <topic>");
@@ -83,16 +85,16 @@ Shell.prototype.init = function() {
         if (args.length > 0) {
             var setting = args[0];
             switch (setting) {
-                case "on":
-                    _Trace = true;
-                    Kernel.stdIn.handleResponse("Activated trace");
-                    break;
-                case "off":
-                    _Trace = false;
-                    Kernel.stdIn.handleResponse("Deactived trace");
-                    break;
-                default:
-                    Kernel.stdIn.handleResponse("Invalid arguement. Usage: trace <on | off>");
+            case "on":
+                _Trace = true;
+                Kernel.stdIn.handleResponse("Activated trace");
+                break;
+            case "off":
+                _Trace = false;
+                Kernel.stdIn.handleResponse("Deactived trace");
+                break;
+            default:
+                Kernel.stdIn.handleResponse("Invalid arguement. Usage: trace <on | off>");
             }
         } else {
             Kernel.stdIn.handleResponse("Usage: trace <on | off>");
@@ -106,6 +108,16 @@ Shell.prototype.init = function() {
             Kernel.stdIn.handleResponse(args[0] + " = '" + rot13(args[0]) + "'");
         } else {
             Kernel.stdIn.handleResponse("Usage: rot13 <string>");
+        }
+    });
+    this.commandList.push(shellCommand);
+
+    // The 'quantum' command
+    shellCommand = new ShellCommand("quantum", "<integer> - Changes the CPU quantum", function(args) {
+        if (args.length > 0) {
+            CpuScheduler.quantum = parseInt(args[0]);
+        } else {
+            Kernel.stdIn.handleResponse("Usage: quantum <integer>");
         }
     });
     this.commandList.push(shellCommand);
@@ -142,6 +154,65 @@ Shell.prototype.init = function() {
     });
     this.commandList.push(shellCommand);
 
+    // The 'ps' command
+    shellCommand = new ShellCommand("ps", "Shows all active processes", function(args) {
+        // Display a process to the cnsole
+        var displayProcess = function(process) {
+            var message = "{0} {1} {2} {3} {4} {5} {6}".format(
+                pad(process.processId, 4, " "), 
+                pad(process.programCounter, 4, " "), 
+                pad(process.instructionRegister, 4, " "), 
+                pad(process.accumulator, 4, " "), 
+                pad(process.xRegister, 4, " "), 
+                pad(process.yRegister, 4, " "), 
+                pad(process.zFlag, 4, " "));
+            Kernel.stdIn.handleResponse(message);
+            Kernel.stdIn.advanceLine();
+        };
+
+        // Display the process if there is one
+        if (CpuScheduler.currentProcess) {    
+            // Prints out the header or top row of a column
+            var header = "{0} {1} {2} {3} {4} {5} {6}".format(
+                pad("PID", 4, " "), 
+                pad("PC", 4, " "), 
+                pad("IR", 4, " "), 
+                pad("ACC", 4, " "), 
+                pad("X", 4, " "), 
+                pad("Z", 4, " "), 
+                pad("Z", 4, " "));
+            Kernel.stdIn.handleResponse(header);
+            Kernel.stdIn.advanceLine();
+            
+            displayProcess(CpuScheduler.currentProcess);
+
+            // Iterate through every available command
+            for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
+                // Construct and print the process message
+                var process = CpuScheduler.readyQueue.dequeue();
+                displayProcess(process);
+                CpuScheduler.readyQueue.enqueue(process);
+            }
+        } else {
+            Kernel.stdIn.handleResponse("No active processes");
+        }
+    });
+    this.commandList.push(shellCommand);
+
+    // The 'kill' command
+    shellCommand = new ShellCommand("kill", "<integer> - Terminates the specified process", function(args) {
+        // Get the pcb associated with the specified id
+        var pcb = ProcessManager.processControlBlocks[args[0]];
+
+        // Kill the process if it is not null, otherwise print an error
+        if (pcb) {
+            Kernel.handleInterupts(SYSTEM_CALL_IRQ, [0, pcb]);
+        } else {
+            Kernel.stdIn.handleResponse("Unrecognized process ID");
+        }
+    });
+    this.commandList.push(shellCommand);
+
     // The 'load' command
     shellCommand = new ShellCommand("load", "- Validates the specified user program", function() {
         var program = document.getElementById('taProgramInput').value.trim();
@@ -150,25 +221,25 @@ Shell.prototype.init = function() {
             if (program.length <= 0) {
                 return "No program was specified";
             }
-            
+
             // Split the input space and interate through each command
-            var components = program.split(" ");
+            var components = program.split(/\s+/);
             for (var i = 0; i < components.length; i++) {
                 // Print an error if the instruction contains an invalid character (non-hexidecimal)
                 if (!components[i].match(/^[a-f0-9]+$/i)) {
                     return "Invalid character: " + components[i];
                 }
-            }          
-            
+            }
+
             // Load the program into memory and display the process id
             var pcb = ProcessManager.load(program);
             if (pcb) {
                 return "Process ID: " + pcb.processId;
-            }             
+            }
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
-    this.commandList.push(shellCommand);    
+    this.commandList.push(shellCommand);
 
     // The 'filter' command
     shellCommand = new ShellCommand("\\", "<regex> <function> - Filters function output", (function self(args) {
@@ -182,17 +253,17 @@ Shell.prototype.init = function() {
             for (var i = 1; i < args.length; i++) {
                 input += args[i] + " ";
             }
-            
+
             // Parse the input again to retrieve the command being filtered and then get 
             // the shell command as well
             var userCommand = Kernel.shell.parseInput(input);
             var shellCommand = Kernel.shell.getShellCommand(userCommand);
-            
+
             // If the shell command was acutally valid, handle the filter logic
             if (shellCommand) {
                 // Add this filter to the kernel's filter variable
                 Kernel.stdIn.filters.push(new RegExp(args[0], "i"));
-                
+
                 // However, if the user command is also a filter, then we need to recurse
                 // to handle the additional filter, otherwise we execute the command
                 if (userCommand.getCommand() === "filter") {
@@ -202,7 +273,7 @@ Shell.prototype.init = function() {
                 } else {
                     shellCommand(userCommand.getArguments());
                 }
-                
+
                 // Make sure to reset the filters after this process is complete so we don't
                 // unfortunately filter other input :)
                 Kernel.stdIn.filters = [];
@@ -220,12 +291,12 @@ Shell.prototype.init = function() {
         Kernel.trapError("Enabled bsod via command");
     });
     this.commandList.push(shellCommand);
-    
+
     // The 'run' command
     shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
         // Get the pcb associated with the specified id
         var pcb = ProcessManager.processControlBlocks[args[0]];
-        
+
         // Execute the process if it is not null, otherwise print an error
         if (pcb) {
             ProcessManager.execute(pcb);
@@ -234,7 +305,21 @@ Shell.prototype.init = function() {
         }
     });
     this.commandList.push(shellCommand);
-    
+
+    // The 'runall' command
+    shellCommand = new ShellCommand("runall", "- Executes all programs", function(args) {
+        // Execute all available processes
+        if (ProcessManager.processControlBlocks.length) {
+            Kernel.stdIn.handleResponse("Unrecognized process ID");
+        } else {
+            for (var key in ProcessManager.processControlBlocks) {
+                var pcb = ProcessManager.processControlBlocks[key];
+                ProcessManager.execute(pcb);
+            }
+        }
+    });
+    this.commandList.push(shellCommand);
+
     this.putPrompt();
 };
 
@@ -248,15 +333,15 @@ Shell.prototype.handleInput = function(buffer) {
     // Attempt to execute the command if the user entered text, otherwise print the prompt
     if (buffer) {
         Kernel.trace("Shell Command: " + buffer);
-        
+
         // Constructs the function to be executed
         var userCommand = this.parseInput(buffer);
         var fn = this.getShellCommand(userCommand);
         var args = userCommand.getArguments();
-        
+
         // Add the input even if not valid to the history for command recall
         this.inputHistory.add(userCommand);
-        
+
         // Execute the command if a valid command was found
         if (fn) {
             this.execute(fn, args);
@@ -265,7 +350,7 @@ Shell.prototype.handleInput = function(buffer) {
             Kernel.stdIn.handleResponse("Invalid Command. Type 'help' to see all commands.");
             Kernel.stdIn.advanceLine();
             this.putPrompt();
-        }      
+        }
     } else {
         Kernel.stdIn.advanceLine();
         this.putPrompt();
@@ -286,11 +371,11 @@ Shell.prototype.traverseHistory = function(chr) {
 // Handles the execution of the command as well as the state of the console
 Shell.prototype.execute = function(fn, args) {
     Kernel.stdIn.advanceLine();
-    
+
     // Executes the command by sending the first-order function arguments
     fn(args);
-    
-    // Advance the line and replcae the prompt if anything was printed to the screen
+
+    // Advance the line and replace the prompt if anything was printed to the screen
     if (Kernel.stdIn.xPosition > 0) {
         Kernel.stdIn.advanceLine();
     }
@@ -314,10 +399,10 @@ Shell.prototype.getShellCommand = function(userCommand) {
 Shell.prototype.parseInput = function(buffer) {
     // Nornalizes the input and splits it based on white space 
     var components = trim(buffer).toLowerCase().split(" ");
-    
+
     // Retrieves the command by removing the first element of the user input
     var command = trim(components.shift());
-    
+
     // Creates the argument list by adding the remaining elements to an array
     var args = [];
     for (var i in components) {
@@ -387,11 +472,11 @@ function InputHistory() {
     //
     var history = [];
     var position = -1;
-    
+
     //
     // Methods
     //
-    
+
     // Iterates backward in time (this is recalling previous commands)
     this.backward = function() {
         if (position < history.length - 1) {

@@ -18,7 +18,12 @@ Cpu.prototype.start = function(pcb) {
     this.currentProcess = pcb;
     
     // Set the program counter to the first line of the program
-    this.programCounter = 0;
+    this.programCounter = pcb.programCounter;
+    this.instructionRegister = pcb.instructionRegister;
+    this.accumulator = pcb.accumulator;
+    this.xRegister = pcb.xRegister;
+    this.yRegister = pcb.yRegister;
+    this.zFlag = pcb.zFlag;
     
     // Set to true so cycle() is invoked
     this.isExecuting = true;
@@ -52,9 +57,7 @@ Cpu.prototype.cycle = function() {
 
     // If the program counter exceeds the process's memory limit, set the program counter to 
     // the process's base address (this simulates a loop)
-    this.programCounter = (this.programCounter > this.currentProcess.limit) 
-                        ? this.currentProcess.base 
-                        : this.programCounter;
+    this.programCounter = (this.programCounter > this.currentProcess.limit) ? 0 : this.programCounter;
 
     // Fetch the first instruction and increment the program counter
     this.instructionRegister = MemoryManager.read(this.programCounter++, this.currentProcess).toLowerCase();
@@ -65,7 +68,7 @@ Cpu.prototype.cycle = function() {
     // Execute the operation if it is found otherwise throw an error
     if (this.operation) {
         this.operation();
-        // Why is this sometimes null?
+        // TODO: Why is this sometimes null?
         if (this.currentProcess) {
             this.currentProcess.update(this.programCounter, this.instructionRegister, this.accumulator, this.xRegister, this.yRegister, this.zFlag);
         }
@@ -200,18 +203,18 @@ Cpu.prototype.readMemoryParameter = function() {
 
 // Reads the value at the specified memory location
 Cpu.prototype.readFromMemory = function(memoryLocation) {
-    return parseInt(MemoryManager.read(memoryLocation + this.currentProcess.base, this.currentProcess), 16);
+    return parseInt(MemoryManager.read(memoryLocation, this.currentProcess), 16);
 };
 
 // Writes a value to the specified memory location
 Cpu.prototype.writeToMemory = function(value, memoryLocation) {
-    MemoryManager.write(value.toString(16), memoryLocation + this.currentProcess.base, this.currentProcess);
+    MemoryManager.write(value.toString(16), memoryLocation, this.currentProcess);
 };
 
 // Sends an interrupt to the kernel while reinitilizaing the CPU
 Cpu.prototype.throwError = function(message) { 
     Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, this.currentProcess]);
-    this.reset();  
+    this.initialize();  
 };
 
 // This map correlates a hexidecimal instruction with an operation acting as a decoder.

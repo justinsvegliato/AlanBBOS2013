@@ -19,10 +19,10 @@ ProcessManager.load = function(program) {
         MemoryManager.allocate(pcb);               
 
         // Load the program into memory
-        var components = program.split(" ");
+        var components = program.split(/\s+/);
         for (var i = 0; i < components.length; i++) {
             MemoryManager.write(components[i], i + pcb.base);
-        }       
+        }
 
         return pcb;
     } else {
@@ -38,6 +38,7 @@ ProcessManager.unload = function(pcb) {
 
 // Executes the specified program by sending an interrupt to the kernel
 ProcessManager.execute = function(pcb) {
+    pcb.state = ProcessControlBlock.State.READY;
     Kernel.handleInterupts(PROCESS_EXECUTION_IRQ, pcb);
 };
 
@@ -54,6 +55,7 @@ function ProcessControlBlock() {
     this.xRegister = 0;
     this.yRegister = 0;
     this.zFlag = 0;
+    this.state = ProcessControlBlock.State.NEW;
     
     this.output = "";
        
@@ -71,8 +73,10 @@ function ProcessControlBlock() {
     };
 }
 
+// Keeps track of the last process id
 ProcessControlBlock.lastProcessId = 0;
 
+// Enum that contains all possible states of a process
 ProcessControlBlock.State = {
     NEW: "New",
     RUNNING: "Running",

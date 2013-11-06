@@ -85,7 +85,7 @@ Control.bsod = function() {
 // Handles logic associated with updating all displays (this does not affect CPU exection at all)
 Control.update = function() {
     TaskBarDisplay.updateDateTime();
-    ProcessDisplay.update(_CPU);
+    ProcessDisplay.update();
     CpuDisplay.update(_CPU);
     MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
 };

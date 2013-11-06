@@ -65,10 +65,10 @@ String.prototype.format = String.prototype.f = function() {
 };
 
 // Adds padding to a word to ensure that it is of the specified size
-function pad(word, size) {
+function pad(word, size, padder) {
     var paddedWord = "" + word;
     while (paddedWord.length < size) {
-        paddedWord = "0" + paddedWord;
+        paddedWord = padder + paddedWord;
     }
     return paddedWord;
 }

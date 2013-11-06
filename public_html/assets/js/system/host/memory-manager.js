@@ -4,8 +4,8 @@
 
 function MemoryManager() {};
 
-MemoryManager.MEMORY_SIZE = 256;
-MemoryManager.NUMBER_OF_BLOCKS = 1;
+MemoryManager.MEMORY_SIZE = 768;
+MemoryManager.NUMBER_OF_BLOCKS = 3;
 MemoryManager.BLOCK_SIZE = MemoryManager.MEMORY_SIZE / MemoryManager.NUMBER_OF_BLOCKS;
 
 MemoryManager.memory = new Memory(MemoryManager.MEMORY_SIZE);
@@ -32,8 +32,8 @@ MemoryManager.deallocate = function(pcb) {
     MemoryManager.availableBlocks.sort();
     
     // Clear the memory by setting all affected location to 00
-    for (var i = pcb.base; i < pcb.limit; i++) {
-        MemoryManager.memory.words[i] = new Word("00");
+    for (var i = 0; i < pcb.limit; i++) {
+        MemoryManager.memory.words[pcb.base + i] = new Word("00");
     }
     
     // Set the base and limit of the process to null
