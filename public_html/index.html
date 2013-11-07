@@ -176,17 +176,17 @@
         <script type="text/javascript" src="assets/js/system/host/devices.js"></script>
         <script type="text/javascript" src="assets/js/system/host/cpu.js"></script>
         <script type="text/javascript" src="assets/js/system/host/memory.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/memory-manager.js"></script>
         
-        <!-- Display routines (note this is arguably under host routines as well -->
-        <script type="text/javascript" src="assets/js/system/host/console-display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/log-display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/taskbar-display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/cpu-display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/memory-display.js"></script>
-        <script type="text/javascript" src="assets/js/system/host/process-display.js"></script>       
+        <!-- Display routines (note this is part of the OS as well -->
+        <script type="text/javascript" src="assets/js/system/os/display/console-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/display/log-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/display/taskbar-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/display/cpu-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/display/memory-display.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/display/process-display.js"></script>       
 
         <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
+        <script type="text/javascript" src="assets/js/system/os/memory-manager.js"></script>
         <script type="text/javascript" src="assets/js/system/os/interrupt.js"></script>
         <script type="text/javascript" src="assets/js/system/os/canvastext.js"></script>	
         <script type="text/javascript" src="assets/js/system/os/console.js"></script>	
@@ -197,6 +197,7 @@
         <script type="text/javascript" src="assets/js/system/os/system-call-library.js"></script>
         <script type="text/javascript" src="assets/js/system/os/kernel.js"></script>
         <script type="text/javascript" src="assets/js/system/os/process-manager.js"></script>
+        
 
         <!-- Other Routines -->
         <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>
