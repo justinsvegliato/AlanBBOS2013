@@ -16,6 +16,14 @@ CpuScheduler.quantum = 6;
 // The cycle of the executing process
 CpuScheduler.cycle = 0;
 
+CpuScheduler.AlgorithmEnum = {
+    ROUND_ROBIN : "Round Robin",
+    FCFS : "First Come First Serve",
+    PRIORITY : "Priority"
+};
+
+CpuScheduler.algorithm = CpuScheduler.AlgorithmEnum.ROUND_ROBIN;            
+
 // Schedules the next process to be executed
 CpuScheduler.schedule = function() {
     // If the process has run out of time or if there is no currently running process, and

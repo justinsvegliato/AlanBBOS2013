@@ -147,7 +147,11 @@ Shell.prototype.init = function() {
     // The 'status' command
     shellCommand = new ShellCommand("status", "<string> - Sets a status message", function(args) {
         if (args.length > 0) {
-            TaskBarDisplay.setStatus(args[0]);
+            var status = "";
+            for (var i = 0; i < args.length; i++) {
+                status += args[i] + " ";
+            }
+            TaskBarDisplay.setStatus(status).trim();
         } else {
             Kernel.stdIn.handleResponse("Usage: status <string>");
         }
@@ -156,7 +160,7 @@ Shell.prototype.init = function() {
 
     // The 'ps' command
     shellCommand = new ShellCommand("ps", "Shows all active processes", function(args) {
-        // Display a process to the cnsole
+        // Display a process to the console
         var displayProcess = function(process) {
             var message = "{0} {1} {2} {3} {4} {5} {6}".format(
                 pad(process.processId, 4, " "), 
@@ -320,6 +324,60 @@ Shell.prototype.init = function() {
     });
     this.commandList.push(shellCommand);
 
+    this.putPrompt();
+    
+    // The 'create' command
+    shellCommand = new ShellCommand("create", "<fllename> - Creates the specified file", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'read' command
+    shellCommand = new ShellCommand("read", "<fllename> - Reads the specified file", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'write' command
+    shellCommand = new ShellCommand("write", "<fllename> \"data\" - Writes the specified file", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'delete' command
+    shellCommand = new ShellCommand("delete", "<fllename> - Deletes the specified file", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'format' command
+    shellCommand = new ShellCommand("format", "Initializes disk", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'ls' command
+    shellCommand = new ShellCommand("ls", "Lists all files on disk", function(args) {
+        
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'setschedule' command
+    shellCommand = new ShellCommand("setschedule", "[rr, fcfs, priority] Sets scheduling algorithm", function(args) {
+        if (args[0] === "rr" || args[0] === "fcfs" || args[0] === "priority") {
+            
+        } else {
+            Kernel.stdIn.handleResponse("Unrecognized scheduling algorithm");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'getschedule' command
+    shellCommand = new ShellCommand("getschedule", "Gets the current scheduling algorithm", function(args) {
+        Kernel.stdIn.handleResponse(CpuScheduler.algorithm.toString());
+    });
+    this.commandList.push(shellCommand);    
+    
     this.putPrompt();
 };
 

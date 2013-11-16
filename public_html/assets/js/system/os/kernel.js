@@ -15,6 +15,7 @@ function Kernel() {};
 // Properties
 //
 Kernel.keyboardDriver = null;
+Kernel.hardDriveDriver = null;
 Kernel.interruptQueue = null;
 Kernel.buffers = null;
 Kernel.inputQueue = null;
@@ -51,11 +52,17 @@ Kernel.bootstrap = function() {
 
     // Load the keyboard device driver
     Kernel.trace("Loading the keyboard device driver");
-    Kernel.keyboardDriver = new Queue();
     Kernel.keyboardDriver = new DeviceDriverKeyboard();
     Kernel.keyboardDriver.driverEntry();
     Kernel.trace(Kernel.keyboardDriver.status);
     
+    // Load the hard drive device driver
+    Kernel.trace("Loading the hard drive device driver");
+    Kernel.hardDriveDriver = new DeviceDriverHardDrive();
+    Kernel.hardDriveDriver.driverEntry();
+    Kernel.trace(Kernel.hardDriveDriver.status);
+    
+    // Loading all kernal structures associated with process and memory management
     Kernel.memoryManager = MemoryManager;
     Kernel.processManager = ProcessManager;  
     Kernel.systemCallLibrary= SystemCallLibrary;
@@ -180,6 +187,12 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
         case PROCESS_FAULT_IRQ:
             Kernel.processFaultIsr(params);
             break;
+        case DISK_OPERATION_FAULT_IRQ:
+            Kernel.diskOperationFaultIsr(params);
+            break;
+        case DISK_OPERATION_IRQ:
+            Kernel.hardDriveDriver.isr(params);
+            break;            
         // The routine that handles error that occur when a process is loaded
         case PROCESS_LOAD_FAULT_IRQ:
             Kernel.processLoadFaultIsr(params);
@@ -240,7 +253,7 @@ Kernel.systemCallIsr = function(params) {
         systemCall(params);
     } else {
         var message = "Invalid system call id: " + systemCallId;
-        Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, params[0]])
+        Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, params[0]]);
     }  
 };
 
@@ -266,6 +279,17 @@ Kernel.processFaultIsr = function(params) {
     
     // Terminate the process
     SystemCallLibrary.terminateProcess([pcb]); 
+    
+    // Do some output to alert the user of the error
+    Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);       
+    
+    Kernel.trace(message);
+};
+
+Kernel.diskOperationFaultIsr = function(params) {
+    var message = params[0];      
     
     // Do some output to alert the user of the error
     Kernel.console.handleResponse(message);

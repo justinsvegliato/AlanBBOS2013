@@ -23,6 +23,7 @@ var STEP_MODE_IRQ = 6;
 var PROCESS_FAULT_IRQ = 7;
 var PROCESS_LOAD_FAULT_IRQ = 8;
 var CONTEXT_SWITCH_IRQ = 9;
+var DISK_OPERATION_FAULT_IRQ = 10;
 
 //
 // Global Variables
