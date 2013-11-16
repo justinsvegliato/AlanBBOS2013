@@ -153,9 +153,14 @@ canvas:focus {
 }
 #process-display {
     height: 129px;
-    overflow-x: scroll;
+    overflow-x: hidden;
     overflow-y: scroll;
 }
 #storage {
     display: none;
+}
+#hard-drive-display {
+    height: 200px;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }

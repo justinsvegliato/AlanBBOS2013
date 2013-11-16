@@ -88,6 +88,7 @@ Control.update = function() {
     ProcessDisplay.update();
     CpuDisplay.update(_CPU);
     MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
+    HardDriveDisplay.update(Kernel.hardDriveManager);
 };
 
 // Handles logic behind entering step mode by sending an interrupt to the kernel
