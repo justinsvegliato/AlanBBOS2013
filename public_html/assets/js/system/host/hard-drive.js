@@ -2,8 +2,10 @@ function HardDrive(tracks, sectors, blocks, block_size) {
     this.tracks = tracks;
     this.sectors = sectors;
     this.blocks = blocks; 
-    this.block_size = block_size;
-    
+    this.block_size = block_size;         
+};
+
+HardDrive.prototype.initialize = function() {
     for (var i = 0; i < this.tracks; i++) {
         for (var j = 0; j < this.sectors; j++) {
             for (var k = 0; k < this.blocks; k++) {
@@ -11,7 +13,7 @@ function HardDrive(tracks, sectors, blocks, block_size) {
                 this.write(i, j, k, data);
             }
         }
-     }
+    } 
 };
 
 HardDrive.prototype.write = function(track, sector, block, data) {
