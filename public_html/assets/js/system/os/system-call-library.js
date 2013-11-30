@@ -10,15 +10,17 @@ SystemCallLibrary.terminateProcess = function(params) {
     // we must stop it and set the cycle number. On the other hand, if it's not being executed,
     // just removed it from the ready queue. This is a sequential search provided that the
     // ready queue is a queue. This would be faster with a dictionary or something like that.
-    if (CpuScheduler.currentProcess.processId === pcb.processId) {
-        CpuScheduler.currentProcess = null;
-        CpuScheduler.cycle = 0; 
-        _CPU.stop();
-    } else {
-        for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
-            var process = CpuScheduler.readyQueue.dequeue();
-            if (process.processId !== pcb.processId) {
-               CpuScheduler.readyQueue.enqueue(process);
+    if (CpuScheduler.currentProcess !== null) {
+        if (CpuScheduler.currentProcess.processId === pcb.processId) {
+            CpuScheduler.currentProcess = null;
+            CpuScheduler.cycle = 0; 
+            _CPU.stop();
+        } else {
+            for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
+                var process = CpuScheduler.readyQueue.dequeue();
+                if (process.processId !== pcb.processId) {
+                   CpuScheduler.readyQueue.enqueue(process);
+                }
             }
         }
     }
