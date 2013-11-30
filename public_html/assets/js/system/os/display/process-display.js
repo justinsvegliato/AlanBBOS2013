@@ -17,6 +17,7 @@ ProcessDisplay.row = "<tr{0}>\
                           <td class='process-x-value'>{5}</td>\
                           <td class='process-y-value'>{6}</td>\
                           <td class='process-z-value'>{7}</td>\
+                          <td class='process-z-value'>{8}</td>\
                       </tr>";
 
 // Updates each componenent of the process within the display
@@ -31,7 +32,8 @@ ProcessDisplay.update = function() {
             process.accumulator,
             process.xRegister,
             process.yRegister,
-            process.zFlag
+            process.zFlag,
+            process.state
         );
         ProcessDisplay.processDisplayTable.append(row);
     };
@@ -70,6 +72,6 @@ ProcessDisplay.update = function() {
     
     // If there are no processes, display some message.
     if (!ProcessDisplay.processDisplayTable.html()) {
-        ProcessDisplay.processDisplayTable.html("<tr><td class='lead text-center' colspan='7'>No programs are in execution</td></tr>");
+        ProcessDisplay.processDisplayTable.html("<tr><td class='lead text-center' colspan='8'>No programs are in execution</td></tr>");
     }
 };
