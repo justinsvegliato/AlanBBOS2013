@@ -151,7 +151,7 @@ Shell.prototype.init = function() {
             for (var i = 0; i < args.length; i++) {
                 status += args[i] + " ";
             }
-            TaskBarDisplay.setStatus(status).trim();
+            TaskBarDisplay.setStatus(status);
         } else {
             Kernel.stdIn.handleResponse("Usage: status <string>");
         }
@@ -327,43 +327,57 @@ Shell.prototype.init = function() {
     this.putPrompt();
     
     // The 'create' command
-    shellCommand = new ShellCommand("create", "<fllename> - Creates the specified file", function(args) {
-        
+    shellCommand = new ShellCommand("create", "<filename> - Creates the specified file", function(args) {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["create", args[0]]);
     });
     this.commandList.push(shellCommand);
     
     // The 'read' command
-    shellCommand = new ShellCommand("read", "<fllename> - Reads the specified file", function(args) {
-        
+    shellCommand = new ShellCommand("read", "<filename> - Reads the specified file", function(args) {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["read", args[0]]);
     });
     this.commandList.push(shellCommand);
     
     // The 'write' command
-    shellCommand = new ShellCommand("write", "<fllename> \"data\" - Writes the specified file", function(args) {
-        
+    shellCommand = new ShellCommand("write", "<filename> \"data\" - Writes the specified file", function(args) {
+        if (args.length === 2) {
+            var data = "";
+            for (var i = 1; i < args.length; i++) {
+                data += args[i];
+            }
+
+            if ((data.charAt(0) === "\"") && (data.charAt(data.length - 1) === "\"")) {
+                data = data.slice(1).slice(0, data.length - 2);
+                Kernel.handleInterupts(DISK_OPERATION_IRQ, ["write", args[0], data]);
+            } else {
+                Kernel.stdIn.handleResponse("Data must be surrounded by quotes");
+            }
+        } else {
+            Kernel.stdIn.handleResponse("Usage: write <filename> \"data\"");
+        }
     });
     this.commandList.push(shellCommand);
     
     // The 'delete' command
-    shellCommand = new ShellCommand("delete", "<fllename> - Deletes the specified file", function(args) {
-        
+    shellCommand = new ShellCommand("delete", "<filename> - Deletes the specified file", function(args) {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["delete", args[0]]);
     });
     this.commandList.push(shellCommand);
     
     // The 'format' command
-    shellCommand = new ShellCommand("format", "Initializes disk", function(args) {
-        
+    shellCommand = new ShellCommand("format", "- Initializes disk", function() {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["format"]);
     });
     this.commandList.push(shellCommand);
     
     // The 'ls' command
-    shellCommand = new ShellCommand("ls", "Lists all files on disk", function(args) {
-        
+    shellCommand = new ShellCommand("ls", "- Lists all files on disk", function() {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["ls"]);
     });
     this.commandList.push(shellCommand);
     
     // The 'setschedule' command
-    shellCommand = new ShellCommand("setschedule", "[rr, fcfs, priority] Sets scheduling algorithm", function(args) {
+    shellCommand = new ShellCommand("setschedule", "- [rr, fcfs, priority] Sets scheduling algorithm", function(args) {
         if (args[0] === "rr" || args[0] === "fcfs" || args[0] === "priority") {
             
         } else {
@@ -373,7 +387,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
     
     // The 'getschedule' command
-    shellCommand = new ShellCommand("getschedule", "Gets the current scheduling algorithm", function(args) {
+    shellCommand = new ShellCommand("getschedule", "- Gets the current scheduling algorithm", function(args) {
         Kernel.stdIn.handleResponse(CpuScheduler.algorithm.toString());
     });
     this.commandList.push(shellCommand);    
