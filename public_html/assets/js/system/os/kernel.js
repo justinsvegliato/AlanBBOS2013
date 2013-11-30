@@ -305,14 +305,22 @@ Kernel.contextSwitchIsr = function() {
     
     // If there is a process being executed, stop it, set the state to waiting, and put it
     // back on the queue
+    var oldProcess = CpuScheduler.currentProcess;
     if (CpuScheduler.currentProcess) {
         _CPU.stop();
         CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
         CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
-    }   
+    }      
     
     // Load the new process regardless
-    CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();
+    CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();   
+    
+    // Swap the old process out with the new process; note that sometimes the old process will
+    // be null if we just started process exeecution
+    if (!CpuScheduler.currentProcess.inMemory) {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", oldProcess, CpuScheduler.currentProcess]);    
+    }
+    
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
     _CPU.start(CpuScheduler.currentProcess);
     CpuScheduler.cycle = 0;
