@@ -107,7 +107,7 @@ body {
 }
 
 #log {
-    height: 150px;
+    height: 90px;
     overflow: auto;
 }
 div.entry {
@@ -130,13 +130,13 @@ canvas:focus {
     display: none;
 }
 #display-container {
-    height: 535px;
+    height: 460px;
     width: 515px;
     overflow-x: hidden;
     overflow-y: auto;
 }
 #memory-display {
-    height: 129px;
+    /*height: 100px;*/
     overflow-x: hidden;
     overflow-y: scroll;
 }
@@ -145,6 +145,7 @@ canvas:focus {
 }
 #taProgramInput {
     height: 112px;
+    width: 147px;    
 }
 .highlighted-location {
     font-weight: bolder;
@@ -152,15 +153,23 @@ canvas:focus {
     text-shadow: #737072 0.075em 0.075em 0.1em;
 }
 #process-display {
-    height: 129px;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    height: 110px;
+    overflow: auto;
 }
 #storage {
     display: none;
 }
 #hard-drive-display {
-    height: 200px;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    height: 75px;
+    overflow: auto;
+}
+.no-margin-top {
+    margin-top: 0px;
+}
+.no-top-border {
+    border-top: none;
+}
+.no-top-border-radius {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
 }
