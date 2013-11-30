@@ -27,6 +27,7 @@ Cpu.prototype.start = function(pcb) {
     
     // Set to true so cycle() is invoked
     this.isExecuting = true;
+//    $("debugger").append("<br><br>");
 };
 
 // Stops CPU execution
@@ -64,7 +65,9 @@ Cpu.prototype.cycle = function() {
     
     // Decode the instruction (aka get the operationg associated with the instruction)
     this.operation = Cpu.prototype.operationMap[this.instructionRegister];
-
+    
+//    $("#debugger").append(this.currentProcess.processId + " -> " + this.instructionRegister + "<br>");
+    
     // Execute the operation if it is found otherwise throw an error
     if (this.operation) {
         this.operation();
@@ -208,7 +211,7 @@ Cpu.prototype.readFromMemory = function(memoryLocation) {
 
 // Writes a value to the specified memory location
 Cpu.prototype.writeToMemory = function(value, memoryLocation) {
-    MemoryManager.write(value.toString(16), memoryLocation, this.currentProcess);
+    MemoryManager.write(pad(value.toString(16), 2, "0"), memoryLocation, this.currentProcess);
 };
 
 // Sends an interrupt to the kernel while reinitilizaing the CPU
