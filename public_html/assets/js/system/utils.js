@@ -81,3 +81,13 @@ function toHexidecimal(str) {
     }
     return hex;
 }
+
+function toASCII(hex) {
+    var str = "";
+    for (var i = 0; i < hex.length; i += 2) {
+        var characterCode = parseInt(hex.substr(i, 2), 16);
+        var character = (characterCode === 0) ? "0" : String.fromCharCode(characterCode);
+        str += character;
+    }
+    return str;
+}
