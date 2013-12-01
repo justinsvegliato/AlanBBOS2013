@@ -12,14 +12,22 @@ MemoryManager.memory = new Memory(MemoryManager.MEMORY_SIZE);
 MemoryManager.availableBlocks = _.range(MemoryManager.NUMBER_OF_BLOCKS);
 
 // Allocates memory for the specified pcb
-MemoryManager.allocate = function(pcb) {
+MemoryManager.allocate = function(pcb, memoryLocations) {
     // Set the base and limit of the PCB from an unallocated block
     pcb.base = MemoryManager.availableBlocks.shift() * MemoryManager.BLOCK_SIZE;
     pcb.limit = MemoryManager.BLOCK_SIZE - 1;
     
+    // Fill all memory locations
+    for (var i = 0; i < memoryLocations.length; i++) {
+        MemoryManager.memory.words[pcb.base + i] = new Word(memoryLocations[i]);
+    }
+    
     // Sort the memory just so processes are place in intuitive locations within memory
     // just so future user processes will be placed in the earliest spot
     MemoryManager.availableBlocks.sort();
+   
+    // Update the memory display to handle changes
+    MemoryDisplay.update();
 };
 
 // Deallocates memory for the specified pcb
@@ -39,6 +47,9 @@ MemoryManager.deallocate = function(pcb) {
     // Set the base and limit of the process to null
     pcb.base = null;
     pcb.limit = null;
+    
+    // Update the memory display to handle changes
+    MemoryDisplay.update();
 };
 
 // Writes the data to the specified memory location (if a pcb is specified, check to see if
@@ -54,6 +65,9 @@ MemoryManager.write = function(data, location, pcb) {
     } else {    
         MemoryManager.memory.words[location + base] = new Word(data);
     }
+    
+    // Update the memory display to handle changes
+    MemoryDisplay.update();
 };
 
 // Read the data from the specified memory location (if a pcb is specified, check to see if

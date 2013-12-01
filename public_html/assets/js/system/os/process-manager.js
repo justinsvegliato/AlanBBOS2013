@@ -4,29 +4,25 @@
 
 function ProcessManager() {};
 
-// The list of all processes waiting to be handled (the ready queue!)
+// The list of all processes waiting to be handled
 ProcessManager.processControlBlocks = {};
 
 // Loads the specified program into memory
-ProcessManager.load = function(program) {
+ProcessManager.load = function(program, priority) {
     // If there is space available to be allocated, do so. Otherwise send an interrupt to the kernel
     if (Object.keys(ProcessManager.processControlBlocks).length < MemoryManager.NUMBER_OF_BLOCKS) {
         // Create a new pcb and add it to the ready queue
-        var pcb = new ProcessControlBlock(true);
+        var pcb = new ProcessControlBlock(true, priority);
         ProcessManager.processControlBlocks[pcb.processId] = pcb;
 
-        // Set the base and limit of the pcb
-        MemoryManager.allocate(pcb);
-
-        // Load the program into memory
-        var components = program.split(/\s+/);
-        for (var i = 0; i < components.length; i++) {
-            MemoryManager.write(components[i], i + pcb.base);
-        }
+        
+        // Set the base and limit of the pcb as well as the memory locations
+        var memoryLocations = program.split(/\s+/);
+        MemoryManager.allocate(pcb, memoryLocations);
 
         return pcb;
     } else {
-        var pcb = new ProcessControlBlock(false);
+        var pcb = new ProcessControlBlock(false, priority);
         ProcessManager.processControlBlocks[pcb.processId] = pcb;
         
         var modifiedProgram = program.split(/\s+/).join('');
@@ -57,10 +53,9 @@ ProcessManager.execute = function(pcb) {
 //
 // An interior class to represent the process control block
 //
-function ProcessControlBlock(inMemory) {
+function ProcessControlBlock(inMemory, priority) {
     // Increment the process id every time a pcb is constructed
     this.processId = ProcessControlBlock.lastProcessId++;
-    this.inMemory = inMemory;
 
     this.programCounter = 0;
     this.instructionRegister = 0;
@@ -68,12 +63,15 @@ function ProcessControlBlock(inMemory) {
     this.xRegister = 0;
     this.yRegister = 0;
     this.zFlag = 0;
-    this.state = ProcessControlBlock.State.NEW;
-
-    this.output = "";
-
+    
     this.base = null;
     this.limit = null;
+    
+    this.state = ProcessControlBlock.State.NEW;
+    
+    this.output = "";    
+    this.inMemory = inMemory;
+    this.priority = priority;
 
     // Updates the pcb - this will be used for context switching
     this.update = function(programCounter, instructionRegister, accumulator, xRegister, yRegister, zFlag) {
@@ -89,7 +87,7 @@ function ProcessControlBlock(inMemory) {
         if (this.base !== null && this.limit !== null) {
             var program = "";
             for (var i = 0; i < this.limit; i++) {
-                program += MemoryManager.memory.words[this.base + i].data;
+                program += MemoryManager.read(i, this);
             }
             return program;
         }
@@ -107,3 +105,9 @@ ProcessControlBlock.State = {
     READY: "Ready",
     TERMINATED: "Terminated"
 };
+
+// TODO
+// Make sure hard drive doesn't go over capacity
+// Can't run already running process
+// Prevent too big of a program
+// Fix prompt

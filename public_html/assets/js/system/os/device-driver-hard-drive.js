@@ -11,7 +11,6 @@ DeviceDriverHardDrive.prototype.driverEntry = function() {
 DeviceDriverHardDrive.prototype.isr = function(params) {
     var requestedDiskOperation = params[0];
     var params = params.slice(1);
-
     var diskOperation = DeviceDriverHardDrive.diskOperations[requestedDiskOperation];
     if (diskOperation) {
         diskOperation(params);
@@ -23,11 +22,12 @@ DeviceDriverHardDrive.prototype.isr = function(params) {
 
 DeviceDriverHardDrive.createFile = function(params) {
     var directory = params[0];
-    
-    if (HardDriveManager.createFile(directory)) {
-        Kernel.stdIn.handleResponse("File created: " + directory);
-    } else {
-        Kernel.stdIn.handleResponse("File already exists: " + directory);
+    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be created")) {
+        if (HardDriveManager.createFile(directory)) {
+            Kernel.stdIn.handleResponse("File created: " + directory);
+        } else {
+            Kernel.stdIn.handleResponse("File already exists: " + directory);
+        }
     }
 };
 
@@ -36,6 +36,7 @@ DeviceDriverHardDrive.listFiles = function() {
     if (files.length) {
         for (var i = 0; i < files.length; i++) {
             Kernel.stdIn.handleResponse(files[i]);
+            Kernel.stdIn.advanceLine();
         }
     } else {
         Kernel.stdIn.handleResponse("No files exist");
@@ -45,17 +46,17 @@ DeviceDriverHardDrive.listFiles = function() {
 DeviceDriverHardDrive.writeFile = function(params) {
     var directory = params[0];
     var data = params[1];
-    
-    if (HardDriveManager.writeFile(directory, data)) {
-        Kernel.stdIn.handleResponse("File updated: " + directory);
-    } else {        
-        Kernel.stdIn.handleResponse("File does not exist: " + directory);
+    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be modified")) {
+        if (HardDriveManager.writeFile(directory, data)) {
+            Kernel.stdIn.handleResponse("File updated: " + directory);
+        } else {        
+            Kernel.stdIn.handleResponse("File does not exist: " + directory);
+        }
     }
 };
 
 DeviceDriverHardDrive.readFile = function(params) {
     var directory = params[0];
-    
     var content = HardDriveManager.readFile(directory);
     if (content) {
         Kernel.stdIn.handleResponse(content);     
@@ -66,11 +67,12 @@ DeviceDriverHardDrive.readFile = function(params) {
 
 DeviceDriverHardDrive.deleteFile = function(params) {
     var directory = params[0];
-    
-    if (HardDriveManager.deleteFile(directory)) {
-        Kernel.stdIn.handleResponse("File deleted: " + directory);
-    } else {        
-        Kernel.stdIn.handleResponse("File does not exist: " + directory);
+    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be deleted")) {
+        if (HardDriveManager.deleteFile(directory)) {
+            Kernel.stdIn.handleResponse("File deleted: " + directory);
+        } else {        
+            Kernel.stdIn.handleResponse("File does not exist: " + directory);
+        }
     }
 };
 
@@ -78,23 +80,22 @@ DeviceDriverHardDrive.swap = function(params) {
     var inMemoryProcess = params[0];
     var harddriveProcess = params[1];
     
+    // Read program from the hard drive
     var filename = "process-" + harddriveProcess.processId + ".swp";
     var program = HardDriveManager.readFile(filename);
     
+    // Unload the program from the hard drive after storing it to a temporary variable
     DeviceDriverHardDrive.unloadProcess([harddriveProcess]);
     
-    if (inMemoryProcess !== null) {
-        DeviceDriverHardDrive.loadProcess([inMemoryProcess, inMemoryProcess.getProgram()]);
+    if (inMemoryProcess) {
+        DeviceDriverHardDrive.loadProcess([inMemoryProcess, inMemoryProcess.getProgram()]);  
         MemoryManager.deallocate(inMemoryProcess);
         inMemoryProcess.inMemory = false;
     }
-    
-    MemoryManager.allocate(harddriveProcess);
-
+        
     var memoryLocations = program.match(/.{1,2}/g);
-    for (var i = 0; i < memoryLocations.length; i++) {
-        MemoryManager.write(memoryLocations[i], i + harddriveProcess.base);
-    }
+    MemoryManager.allocate(harddriveProcess, memoryLocations);
+    
     harddriveProcess.inMemory = true;
 };
 
@@ -115,6 +116,14 @@ DeviceDriverHardDrive.unloadProcess = function(params) {
 
 DeviceDriverHardDrive.formatDisk = function() {
     HardDriveManager.initialize();
+};
+
+DeviceDriverHardDrive.checkIfSwapFile = function(directory, message) {
+    if (!directory.match(/.swp$/)) {
+        return true;
+    }
+    Kernel.stdIn.handleResponse(message + ": " + directory);
+    return false;
 };
 
 DeviceDriverHardDrive.diskOperations = {
