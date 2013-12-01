@@ -85,7 +85,8 @@ Kernel.bootstrap = function() {
         _GLaDOS.afterStartup();
     }
     
-    Control.update();
+    // Update task bar display
+    TaskBarDisplay.updateDateTime();
 };
 
 // Handles logic associated with terminating the system
@@ -120,13 +121,16 @@ Kernel.pulse = function() {
         Kernel.handleInterupts(interrupt.irq, interrupt.params);
     } else if (_CPU.isExecuting && !Kernel.isStepModeActivated) {
         CpuScheduler.cycle++;
-        _CPU.cycle();             
+        _CPU.cycle();   
+        MemoryDisplay.update();        
+        ProcessDisplay.update();   
+        CpuDisplay.update();
     } else {
         Kernel.trace("Idle");
     } 
     
-    // Update the displays
-    Control.update();
+    // Update appropriate displays
+    TaskBarDisplay.updateDateTime();
     
     // Check if a new process should start execution
     CpuScheduler.schedule();
@@ -205,7 +209,9 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
     }
     
-    Control.update();
+    MemoryDisplay.update();     
+    ProcessDisplay.update();
+    CpuDisplay.update();
 };
 
 //
@@ -263,6 +269,11 @@ Kernel.stepIsr = function() {
     CpuScheduler.cycle++;
     CpuScheduler.schedule();
     
+    // Update appropriate displays
+    MemoryDisplay.update();
+    ProcessDisplay.update();
+    CpuDisplay.update();
+    
     // Just simply call cycle() to handle the next instruction
     _CPU.cycle(); 
 };
@@ -305,20 +316,29 @@ Kernel.contextSwitchIsr = function() {
     
     // If there is a process being executed, stop it, set the state to waiting, and put it
     // back on the queue
-    var oldProcess = CpuScheduler.currentProcess;
-    if (CpuScheduler.currentProcess) {
+    var previousProcess = CpuScheduler.currentProcess;
+    if (previousProcess) {
         _CPU.stop();
         CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
         CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
-    }      
+    }
     
     // Load the new process regardless
-    CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();   
+    CpuScheduler.currentProcess = CpuScheduler.getNextProcess();   
     
     // Swap the old process out with the new process; note that sometimes the old process will
-    // be null if we just started process exeecution
+    // be null if we just started process execution
     if (!CpuScheduler.currentProcess.inMemory) {
-        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", oldProcess, CpuScheduler.currentProcess]);    
+        if (!previousProcess) {
+            for (var key in ProcessManager.processControlBlocks) {
+                var process = ProcessManager.processControlBlocks[key];
+                if (process.inMemory) {
+                   previousProcess = process;
+                   break;
+                }
+            }
+        }
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", previousProcess, CpuScheduler.currentProcess]);    
     }
     
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
