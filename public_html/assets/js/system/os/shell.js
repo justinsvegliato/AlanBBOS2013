@@ -228,19 +228,24 @@ Shell.prototype.init = function() {
 
             // Split the input space and interate through each command
             var components = program.split(/\s+/);
-            for (var i = 0; i < components.length; i++) {
-                // Print an error if the instruction contains an invalid character (non-hexidecimal)
-                if (!components[i].match(/^[a-f0-9]+$/i)) {
-                    return "Invalid character: " + components[i];
+            if (components.length <= MemoryManager.BLOCK_SIZE) {
+                for (var i = 0; i < components.length; i++) {
+                    // Print an error if the instruction contains an invalid character (non-hexidecimal)
+                    if (!components[i].match(/^[a-f0-9]+$/i)) {
+                        return "Invalid character: " + components[i];
+                    }
                 }
-            }
 
-            // Load the program into memory and display the process id
-            var priority = (args.length > 0) ? args[0] : Number.MAX_VALUE;
-            var pcb = ProcessManager.load(program, priority);
-            if (pcb) {
-                return "Process ID: " + pcb.processId;
+                // Load the program into memory and display the process id
+                var priority = (args.length > 0) ? args[0] : Number.MAX_VALUE;
+                var pcb = ProcessManager.load(program, priority);
+                if (pcb) {
+                    return "Process ID: " + pcb.processId;
+                }
+            } else {
+                return "Program is too large";
             }
+            
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
@@ -300,13 +305,18 @@ Shell.prototype.init = function() {
     // The 'run' command
     shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
         // Get the pcb associated with the specified id
+        var processId = args[0];
         var pcb = ProcessManager.processControlBlocks[args[0]];
 
         // Execute the process if it is not null, otherwise print an error
-        if (pcb) {
-            ProcessManager.execute(pcb);
+        if (pcb) {        
+            if (pcb.state === ProcessControlBlock.State.NEW) {
+                ProcessManager.execute(pcb);
+            } else {
+                Kernel.stdIn.handleResponse("Process already executing: " + processId);
+            }
         } else {
-            Kernel.stdIn.handleResponse("Unrecognized process ID");
+            Kernel.stdIn.handleResponse("Unrecognized process ID: " + processId);
         }
     });
     this.commandList.push(shellCommand);
@@ -319,7 +329,9 @@ Shell.prototype.init = function() {
         } else {
             for (var key in ProcessManager.processControlBlocks) {
                 var pcb = ProcessManager.processControlBlocks[key];
-                ProcessManager.execute(pcb);
+                if (pcb.state === ProcessControlBlock.State.NEW) {
+                    ProcessManager.execute(pcb);
+                }
             }
         }
     });

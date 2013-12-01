@@ -108,6 +108,4 @@ ProcessControlBlock.State = {
 
 // TODO
 // Make sure hard drive doesn't go over capacity
-// Can't run already running process
-// Prevent too big of a program
-// Fix prompt
+// Check if hard drive is correct size
