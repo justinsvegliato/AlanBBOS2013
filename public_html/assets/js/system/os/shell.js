@@ -159,7 +159,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'ps' command
-    shellCommand = new ShellCommand("ps", "Shows all active processes", function(args) {
+    shellCommand = new ShellCommand("ps", "- Shows all active processes", function(args) {
         // Display a process to the console
         var displayProcess = function(process) {
             var message = "{0} {1} {2} {3} {4} {5} {6}".format(
@@ -218,7 +218,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'load' command
-    shellCommand = new ShellCommand("load", "- Validates the specified user program", function() {
+    shellCommand = new ShellCommand("load", "[<priority>] - Validates the specified user program", function(args) {
         var program = document.getElementById('taProgramInput').value.trim();
         this.validate = function(program) {
             // Print an error if the input is empty
@@ -236,7 +236,8 @@ Shell.prototype.init = function() {
             }
 
             // Load the program into memory and display the process id
-            var pcb = ProcessManager.load(program);
+            var priority = (args.length > 0) ? args[0] : Number.MAX_VALUE;
+            var pcb = ProcessManager.load(program, priority);
             if (pcb) {
                 return "Process ID: " + pcb.processId;
             }
@@ -377,18 +378,16 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
     
     // The 'setschedule' command
-    shellCommand = new ShellCommand("setschedule", "- [rr, fcfs, priority] Sets scheduling algorithm", function(args) {
-        if (args[0] === "rr" || args[0] === "fcfs" || args[0] === "priority") {
-            
-        } else {
+    shellCommand = new ShellCommand("setschedule", "- [rr, fcfs, priority] Sets the scheduler algo", function(args) {
+        if (!CpuScheduler.setAlgorithm(args[0])) {
             Kernel.stdIn.handleResponse("Unrecognized scheduling algorithm");
         }
     });
     this.commandList.push(shellCommand);
     
     // The 'getschedule' command
-    shellCommand = new ShellCommand("getschedule", "- Gets the current scheduling algorithm", function(args) {
-        Kernel.stdIn.handleResponse(CpuScheduler.algorithm.toString());
+    shellCommand = new ShellCommand("getschedule", "- Gets the scheduler algo", function(args) {
+        Kernel.stdIn.handleResponse(CpuScheduler.getAlgorithm());
     });
     this.commandList.push(shellCommand);    
     
