@@ -1,7 +1,6 @@
 /**
  * Singleton class that handles the display for the host
  */
-
 function ConsoleDisplay() {};
 
 // Necessary canvas variables
