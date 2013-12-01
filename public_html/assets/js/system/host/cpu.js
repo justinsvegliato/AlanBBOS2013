@@ -82,18 +82,21 @@ Cpu.prototype.ldaImmediateOperation = function() {
     this.accumulator = this.readValueParameter();
 };
 Cpu.prototype.ldaImmediateOperation.argumentLength = 1;
+Cpu.prototype.ldaImmediateOperation.mnemonic = "LDA";
 
 // Loads the accumular from memory
 Cpu.prototype.ldaDirectOperation = function() {
     this.accumulator = this.readFromMemory(this.readMemoryParameter());
 };
 Cpu.prototype.ldaDirectOperation.argumentLength = 2;
+Cpu.prototype.ldaDirectOperation.mnemonic = "LDA";
 
 // Stores the accumulator in memory 
 Cpu.prototype.staOperation = function() {
     this.writeToMemory(this.accumulator, this.readMemoryParameter());
 };
 Cpu.prototype.staOperation.argumentLength = 2;
+Cpu.prototype.staOperation.mnemonic = "STA";
 
 // Stores the sum of the accumulator and the value in the specified memory location
 Cpu.prototype.adcOperation = function() {
@@ -101,40 +104,47 @@ Cpu.prototype.adcOperation = function() {
     this.accumulator += this.readFromMemory(memoryLocation);
 };
 Cpu.prototype.adcOperation.argumentLength = 2;
+Cpu.prototype.adcOperation.mnemonic = "ADC";
 
 // Load the x register with a constant
 Cpu.prototype.ldxImmediateOperation = function() {
     this.xRegister = this.readValueParameter();
 };
 Cpu.prototype.ldxImmediateOperation.argumentLength = 1;
+Cpu.prototype.ldxImmediateOperation.mnemonic = "LDX";
 
 // Load the x register with a value from memory
 Cpu.prototype.ldxDirectOperation = function() {
     this.xRegister = this.readFromMemory(this.readMemoryParameter());
 };
 Cpu.prototype.ldxDirectOperation.argumentLength = 2;
+Cpu.prototype.ldxDirectOperation.mnemonic = "LDX";
 
 // Loads the y register with a constant
 Cpu.prototype.ldyImmediateOperation = function() {
     this.yRegister = this.readValueParameter();
 };
 Cpu.prototype.ldyImmediateOperation.argumentLength = 1;
+Cpu.prototype.ldyImmediateOperation.mnemonic = "LDY";
 
 // Loads the y register with a value from memory
 Cpu.prototype.ldyDirectOperation = function() {
     this.yRegister = this.readFromMemory(this.readMemoryParameter());
 };
 Cpu.prototype.ldyDirectOperation.argumentLength = 2;
+Cpu.prototype.ldyDirectOperation.mnemonic = "LDY";
 
 // The best operation ever. Ensures that the CPU is allowed to chill out for one cycle.
 Cpu.prototype.nopOperation = function() {};
 Cpu.prototype.nopOperation.argumentLength = 0;
+Cpu.prototype.nopOperation.mnemonic = "NOP";
 
 // Exits the process
 Cpu.prototype.brkOperation = function() {
     Kernel.handleInterupts(SYSTEM_CALL_IRQ, [0, this.currentProcess]);
 };
 Cpu.prototype.brkOperation.argumentLength = 0;
+Cpu.prototype.brkOperation.mnemonic = "BRK";
 
 // Compares the value of the x register to the value of the memory location. If they are 
 // equal, then the z-flag register is set to 1.
@@ -143,6 +153,7 @@ Cpu.prototype.cpxOperation = function() {
     this.zFlag = (byte === this.xRegister) ? 1 : 0;
 };
 Cpu.prototype.cpxOperation.argumentLength = 2;
+Cpu.prototype.cpxOperation.mnemonic = "CPX";
 
 // Branches to the specified location in memory if the zFlag is 0. If the jump is goes out 
 // of the alotted memory, loop around to the beginning of the block.
@@ -162,6 +173,7 @@ Cpu.prototype.bneOperation = function() {
     }
 };
 Cpu.prototype.bneOperation.argumentLength = 1;
+Cpu.prototype.bneOperation.mnemonic = "BNE";
 
 // Increments the value of this memory location
 Cpu.prototype.incOperation = function() {
@@ -170,6 +182,7 @@ Cpu.prototype.incOperation = function() {
     this.writeToMemory(byte, memoryLocation);
 };
 Cpu.prototype.incOperation.argumentLength = 2;
+Cpu.prototype.incOperation.mnemonic = "INC";
 
 // Prints out the value of the y register or the 00-terminated string stored at the address in 
 // the Y register.
@@ -181,6 +194,7 @@ Cpu.prototype.sysOperation = function() {
     }
 };
 Cpu.prototype.sysOperation.argumentLength = 0;
+Cpu.prototype.sysOperation.mnemonic = "SYS";
 
 // Reads the next parameter while incrementing the program counter. This handles retrieving
 // the value of instructions such as AD 10. The value parameter is also converted to decimal
