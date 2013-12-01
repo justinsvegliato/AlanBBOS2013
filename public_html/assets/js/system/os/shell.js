@@ -21,7 +21,7 @@ Shell.prototype.init = function() {
     // In this method, each command is constructed by instantiating a ShellCommand with 
     // the command name, the description of the command, and the function associated with 
     // the command. 
-
+    
     // The 'ver' command
     var shellCommand = new ShellCommand("ver", "- Displays the current version data", function() {
         Kernel.stdIn.handleResponse(APP_NAME + " v" + APP_VERSION);
@@ -324,8 +324,6 @@ Shell.prototype.init = function() {
         }
     });
     this.commandList.push(shellCommand);
-
-    this.putPrompt();
     
     // The 'create' command
     shellCommand = new ShellCommand("create", "<filename> - Creates the specified file", function(args) {
