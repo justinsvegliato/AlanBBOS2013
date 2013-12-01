@@ -108,7 +108,8 @@ body {
 
 #log {
     height: 90px;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 div.entry {
     margin-left: 10px;
@@ -136,7 +137,7 @@ canvas:focus {
     overflow-y: auto;
 }
 #memory-display {
-    /*height: 100px;*/
+    height: 100px;
     overflow-x: hidden;
     overflow-y: scroll;
 }
@@ -147,9 +148,14 @@ canvas:focus {
     height: 112px;
     width: 147px;    
 }
-.highlighted-location {
+.highlighted-memory-instruction, .highlighted-instruction {
     font-weight: bolder;
     color: #b31b1b;
+    text-shadow: #737072 0.075em 0.075em 0.1em;
+}
+.highlighted-memory-parameter {
+    font-weight: bolder;
+    color: #5cb85c;
     text-shadow: #737072 0.075em 0.075em 0.1em;
 }
 #process-display {
@@ -172,4 +178,22 @@ canvas:focus {
 .no-top-border-radius {
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
+}
+#brand {
+    font-size: 25px;
+}
+#memory-display td, #process-display td {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+}
+#hard-drive-display td {
+    padding: 1px !important;
+}
+#hard-drive-display td small {    
+    font-family: monospace;
+    padding-left: 8px !important;
+}
+.memory-row {
+    font-family: monospace;
+    padding-left: 0px !important;
 }

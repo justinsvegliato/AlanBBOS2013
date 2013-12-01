@@ -19,7 +19,7 @@
         <div id="navigation" class="navbar navbar-default navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <span class="navbar-brand">Sveg<strong class="text-primary">OS</strong></span>
+                    <span id="brand" class="navbar-brand">Sveg<strong class="text-primary">OS</strong></span>
                 </div>
 
                 <div id="controls" class="btn-group nav navbar-form navbar-right">
@@ -78,10 +78,11 @@
                                                     <td>Y</td>
                                                     <td>Z</td>
                                                     <td>Status</td>
+                                                    <td>Location</td>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr><td class="lead text-center" colspan="8">No programs are in execution</td></tr>
+                                                <tr><td class="lead text-center" colspan="9">No programs are in execution</td></tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -111,10 +112,10 @@
             </div>
 
             <div class="row">
-                <div class="col-xs-7">
+                <div id="hard-drive-display-container" class="col-xs-7">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h6 class="panel-title">Harddrive</h6>
+                            <h6 class="panel-title">Hard Drive</h6>
                         </div>
                         <div id="hard-drive-display">
                             <table class="table table-condensed text-center">
@@ -129,7 +130,7 @@
                 <div id="cpu-display" class="col-xs-3">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h6 class="panel-title">CPU</h6>
+                            <h6 class="panel-title">CPU <span id="instruction-details" class="badge pull-right">No Instruction</span></h6>
                         </div>
 
                         <table class="table table-striped text-center">
@@ -146,7 +147,7 @@
                             <tbody>
                                 <tr>
                                     <td id="pc-value">0</td>
-                                    <td id="ir-value">0</td>
+                                    <td id="ir-value" class="highlighted-instruction">0</td>
                                     <td id="acc-value">0</td>
                                     <td id="x-value">0</td>
                                     <td id="y-value">0</td>
