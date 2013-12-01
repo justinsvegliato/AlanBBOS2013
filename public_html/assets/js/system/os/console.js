@@ -42,8 +42,8 @@ Console.prototype.resetPosition = function() {
 
 // Resets the size of the canvas (this is called if cls is typed into the console)
 Console.prototype.resetSize = function() {
-    ConsoleDisplay.canvasElement.attr('height', ConsoleDisplay.CANVAS_HEIGHT);
-    ConsoleDisplay.canvasElement.attr('width', ConsoleDisplay.CANVAS_WIDTH);
+    ConsoleDisplay.canvasElement.attr('height', ConsoleDisplay.CANVAS_HEIGHT - ConsoleDisplay.MARGIN_OFFSET);
+    ConsoleDisplay.canvasElement.attr('width', ConsoleDisplay.CANVAS_WIDTH - ConsoleDisplay.MARGIN_OFFSET);
 };
 
 // Handles the user input 
