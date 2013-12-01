@@ -57,7 +57,7 @@ function rot13(str) {
 // corresponding parameter sent to the function
 String.prototype.format = String.prototype.f = function() {
     var s = this,
-        i = arguments.length;
+            i = arguments.length;
     while (i--) {
         s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
     }

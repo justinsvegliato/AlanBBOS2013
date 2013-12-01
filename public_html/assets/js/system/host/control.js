@@ -28,7 +28,7 @@ Control.init = function() {
     if (typeof Glados === "function") {
         _GLaDOS = new Glados();
         _GLaDOS.init();
-    };
+    };    
 };
 
 // Handles logging messages
@@ -57,6 +57,8 @@ Control.start = function() {
     
     // Start the bootstrap process for the operating system
     Kernel.bootstrap();
+    
+    MemoryDisplay.update();
 };
 
 // Handles all logic associated with halting the operating system
@@ -80,14 +82,6 @@ Control.bsod = function() {
     // Adjusts the display (show bsod) and taskbar (disable all buttons but restart) accordingly
     ConsoleDisplay.enterErrorState();
     TaskBarDisplay.enterErrorState();
-};
-
-// Handles logic associated with updating all displays (this does not affect CPU exection at all)
-Control.update = function() {
-    TaskBarDisplay.updateDateTime();
-    ProcessDisplay.update();
-    CpuDisplay.update(_CPU);
-    MemoryDisplay.update(Kernel.memoryManager, _CPU, Kernel.isStepModeActivated);  
 };
 
 // Handles logic behind entering step mode by sending an interrupt to the kernel
