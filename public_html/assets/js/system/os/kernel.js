@@ -341,6 +341,7 @@ Kernel.contextSwitchIsr = function() {
         Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", previousProcess, CpuScheduler.currentProcess]);    
     }
     
+    // Starts the new process
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
     _CPU.start(CpuScheduler.currentProcess);
     CpuScheduler.cycle = 0;

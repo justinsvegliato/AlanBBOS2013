@@ -1,28 +1,38 @@
+/**
+ * Singleton class that handles hard drive management
+ */
+
 function HardDriveManager() {};
 
+// The specifications of the hard drive
 HardDriveManager.TRACKS = 4;
 HardDriveManager.SECTORS = 8;
 HardDriveManager.BLOCKS = 8;
 HardDriveManager.BLOCK_LENGTH = 64;
 
+// The specification of TSB locations
 HardDriveManager.HEADER_LENGTH = 4;
 HardDriveManager.DATA_LENGTH = HardDriveManager.BLOCK_LENGTH - HardDriveManager.HEADER_LENGTH;
 
+// The specification of the MSB
 HardDriveManager.NEXT_FILE_LOCATION_LENGTH = 3;
 HardDriveManager.NEXT_DIRECTORY_LOCATION_LENGTH = 3;
 
+// The number of directory and file tracks
 HardDriveManager.DIRECTORY_TRACKS = 1;
 HardDriveManager.FILE_TRACKS = HardDriveManager.TRACKS - HardDriveManager.DIRECTORY_TRACKS;
 
+// The end of file symbol that appears (maybe) at the end of TSB locations
 HardDriveManager.END_OF_FILE_SYMBOL = "00";
 
+// The actual hard drive (HTML5 local storage) that is managed
 HardDriveManager.hardDrive = new HardDrive(
         HardDriveManager.TRACKS,
         HardDriveManager.SECTORS,
         HardDriveManager.BLOCKS,
-        HardDriveManager.BLOCK_LENGTH
-        );
+        HardDriveManager.BLOCK_LENGTH);
 
+// Map that contains file name to TSB assocations
 HardDriveManager.directoryTsbMap = {};
 
 HardDriveManager.initialize = function() {
@@ -136,33 +146,44 @@ HardDriveManager.readFile = function(directory) {
     var fileTsb = HardDriveManager.getHeader(directoryTsb[0], directoryTsb[1], directoryTsb[2]).slice(1).split("");
     var content = HardDriveManager.getContent(fileTsb[0], fileTsb[1], fileTsb[2]);
 
+
+    // Iterates through and retrieves the content from all the remaining parts of the file 
     var nextFileLocation = HardDriveManager.getHeader(fileTsb[0], fileTsb[1], fileTsb[2]).slice(1);
     while (nextFileLocation !== "000") {
         fileTsb = nextFileLocation.split("");
         nextFileLocation = HardDriveManager.getHeader(fileTsb[0], fileTsb[1], fileTsb[2]).slice(1);
-
         content += HardDriveManager.getContent(fileTsb[0], fileTsb[1], fileTsb[2]);
     }
-
+    
+    // Removes extraneous "0"s before returning
     return content.replace(/0+$/, "");
 };
 
 HardDriveManager.deleteFile = function(directory) {
+    // Gets TSB associated with this directory
     var directoryTsb = HardDriveManager.directoryTsbMap[directory];
+    
+    // Breaks if the file doesn't exist
     if (!directoryTsb) {
         return false;
     }
 
+    // Gets the first part of the file associated with the directory
     var fileTsb = HardDriveManager.getHeader(directoryTsb[0], directoryTsb[1], directoryTsb[2]).slice(1).split("");
 
+    // Deletes the directory from the directry TSB map
     delete HardDriveManager.directoryTsbMap[directory];
+    
+    // Clears the header and content of the directory TSB
     HardDriveManager.setHeader(directoryTsb[0], directoryTsb[1], directoryTsb[2], "0000");
     HardDriveManager.setContent(directoryTsb[0], directoryTsb[1], directoryTsb[2], HardDriveManager.END_OF_FILE_SYMBOL);
 
+    // Gets the next part of the file and clears it
     var nextFileLocation = HardDriveManager.getHeader(fileTsb[0], fileTsb[1], fileTsb[2]).slice(1);
     HardDriveManager.setHeader(fileTsb[0], fileTsb[1], fileTsb[2], "0000");
     HardDriveManager.setContent(fileTsb[0], fileTsb[1], fileTsb[2], HardDriveManager.END_OF_FILE_SYMBOL);
 
+    // Deletes all remaining parts of the file
     while (nextFileLocation !== "000") {
         fileTsb = nextFileLocation.split("");
         nextFileLocation = HardDriveManager.getHeader(fileTsb[0], fileTsb[1], fileTsb[2]).slice(1);
@@ -176,16 +197,23 @@ HardDriveManager.deleteFile = function(directory) {
     return true;
 };
 
+// Reads data from the specified TSB location
 HardDriveManager.read = function(track, sector, block) {
+    // Read only if the location is valid
     if (HardDriveManager.validateLocation(track, sector, block)) {
+        // Converts the data from hex to ASCII to ease processing
         var hex = HardDriveManager.hardDrive.read(track, sector, block);
         var ascii = toASCII(hex);
         return ascii;
     }
 };
 
+// Writes data to the specified TSB location
 HardDriveManager.write = function(track, sector, block, data) {
+    // Write only if the location is valid
     if (HardDriveManager.validateLocation(track, sector, block)) {
+        // Adds padding to fill up the entire block and then converts the data to hexidecimal
+        // to simulate a real hard drive
         for (var i = data.length; i < (HardDriveManager.BLOCK_LENGTH / 2); i++) {
             data += "0";
         }
@@ -194,36 +222,41 @@ HardDriveManager.write = function(track, sector, block, data) {
     }
 };
 
+// Sets the header of the specified TSB
 HardDriveManager.setHeader = function(track, sector, block, header) {
-    // Gets the content of the TSB (bits 1 to the end)
+    // The header of the TSB range from bit 1 to 3
     var data = HardDriveManager.read(track, sector, block);
     var content = data.slice(HardDriveManager.HEADER_LENGTH);
     var newData = header + content;
     HardDriveManager.write(track, sector, block, newData);
 };
 
+// Gets the header of the specified TSB
 HardDriveManager.getHeader = function(track, sector, block) {
-    // Gets the header of the TSB (bits 1 to the end)
+    // The header of the TSB range from bit 1 to 3
     var data = HardDriveManager.read(track, sector, block);
     return data.slice(0, HardDriveManager.HEADER_LENGTH);
 };
 
+// Sets the content of the specified TSB
 HardDriveManager.setContent = function(track, sector, block, content) {
-    // Sets the content of the TSB (bits 4 to the end)
+    // The content of the TSB range from bit 4 to the end
     var data = HardDriveManager.read(track, sector, block);
     var header = data.slice(0, HardDriveManager.HEADER_LENGTH);
     var newData = header + content;
     HardDriveManager.write(track, sector, block, newData);
 };
 
+// Gets the content of the specified TSB
 HardDriveManager.getContent = function(track, sector, block) {
-    // Gets the content of the TSB (bits 4 to the end)
+    // The content of the TSB range from bit 4 to the end
     var data = HardDriveManager.read(track, sector, block);
     return data.slice(HardDriveManager.HEADER_LENGTH);
 };
 
+// Sets the next file location in the MSB
 HardDriveManager.setNextFileLocation = function(fileLocation) {
-    // Sets the next file to be used (bits 4-6 in the MSB)
+    // The next file to be used ranges from bit 4 to 6 in the MSB
     var data = HardDriveManager.getContent(0, 0, 0);
     var prefix = data.slice(0, HardDriveManager.NEXT_DIRECTORY_LOCATION_LENGTH);
     var suffix = data.slice(HardDriveManager.NEXT_DIRECTORY_LOCATION_LENGTH + HardDriveManager.NEXT_FILE_LOCATION_LENGTH);
@@ -231,28 +264,32 @@ HardDriveManager.setNextFileLocation = function(fileLocation) {
     HardDriveManager.setContent(0, 0, 0, newData);
 };
 
+// Gets the next file location in the MSB
 HardDriveManager.getNextFileLocation = function() {
-    // Gets the next file to be used (bits 4-6 in the MSB)
+    // The next file to be used ranges from bit 4 to 6 in the MSB
     var data = HardDriveManager.getContent(0, 0, 0);
     var directoryLocation = data.slice(HardDriveManager.NEXT_FILE_LOCATION_LENGTH, HardDriveManager.NEXT_FILE_LOCATION_LENGTH + HardDriveManager.NEXT_DIRECTORY_LOCATION_LENGTH);
     return directoryLocation;
 };
 
+// Sets the next directory location in the MSB
 HardDriveManager.setNextDirectoryLocation = function(fileLocation) {
-    // Sets the next directory to be used (bits 1-3 in the MSB)
+    // The next directory to be used ranges from bit 1 to 3 in the MSB
     var data = HardDriveManager.getContent(0, 0, 0);
     var suffix = data.slice(HardDriveManager.NEXT_DIRECTORY_LOCATION_LENGTH);
     var newData = fileLocation + suffix;
     HardDriveManager.setContent(0, 0, 0, newData);
 };
 
+// Gets the next directory location in the MSB
 HardDriveManager.getNextDirectoryLocation = function() {
-    // Gets the next directory to be used (bits 1-3 in the MSB)
+    // The next directory to be used ranges from bit 1 to 3 in the MSB
     var data = HardDriveManager.getContent(0, 0, 0);
     var fileLocation = data.slice(0, HardDriveManager.NEXT_FILE_LOCATION_LENGTH);
     return fileLocation;
 };
 
+// Gets the next available directory TSB
 HardDriveManager.getNextAvailableDirectoryTsb = function() {
     // Iterates through all directory TSBs to find an unused directory TSB
     for (var track = 0; track < HardDriveManager.DIRECTORY_TRACKS; track++) {
@@ -268,6 +305,7 @@ HardDriveManager.getNextAvailableDirectoryTsb = function() {
     }
 };
 
+// Gets the next available file TSB
 HardDriveManager.getNextAvailableFileTsb = function() {
     // Iterates through all file TSBs to find an unused file TSB
     for (var track = HardDriveManager.DIRECTORY_TRACKS; track < HardDriveManager.FILE_TRACKS; track++) {
@@ -283,6 +321,7 @@ HardDriveManager.getNextAvailableFileTsb = function() {
     }
 };
 
+// Checks if the TSB location is validate 
 HardDriveManager.validateLocation = function(track, sector, block) {
     var isValid = true;
     if ((track > HardDriveManager.TRACKS - 1) || (track < 0)) {

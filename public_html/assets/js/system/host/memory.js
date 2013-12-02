@@ -2,6 +2,7 @@
  * The memory of the host (it's just an array)
  */
 
+// Initializes the memory to a certain size
 function Memory(size) {   
     this.words = new Array(); 
     

@@ -9,7 +9,7 @@ ProcessManager.processControlBlocks = {};
 
 // Loads the specified program into memory
 ProcessManager.load = function(program, priority) {
-    // If there is space available to be allocated, do so. Otherwise send an interrupt to the kernel
+    // Allocate memory space if available, otherwise store it on the hard drive
     if (Object.keys(ProcessManager.processControlBlocks).length < MemoryManager.NUMBER_OF_BLOCKS) {
         // Create a new pcb and add it to the ready queue
         var pcb = new ProcessControlBlock(true, priority);
@@ -22,16 +22,15 @@ ProcessManager.load = function(program, priority) {
 
         return pcb;
     } else {
+        // Create a new pcb and add it to the ready queue
         var pcb = new ProcessControlBlock(false, priority);
         ProcessManager.processControlBlocks[pcb.processId] = pcb;
         
+        // Send the program to the disk
         var modifiedProgram = program.split(/\s+/).join('');
         Kernel.handleInterupts(DISK_OPERATION_IRQ, ["loadProcess", pcb, modifiedProgram]);
         return pcb;
     }
-//    else {
-//        Kernel.handleInterupts(PROCESS_LOAD_FAULT_IRQ, "Insufficient memory");
-//    }
 };
 
 // Unloads the specified program from memory
@@ -83,6 +82,7 @@ function ProcessControlBlock(inMemory, priority) {
         this.zFlag = zFlag;
     };
 
+    // Retrieves the program associated with this particular PCB only if stored in memory
     this.getProgram = function() {
         if (this.base !== null && this.limit !== null) {
             var program = "";
@@ -109,3 +109,4 @@ ProcessControlBlock.State = {
 // TODO
 // Make sure hard drive doesn't go over capacity
 // Check if hard drive is correct size
+// Line wrap files

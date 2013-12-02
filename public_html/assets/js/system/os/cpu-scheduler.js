@@ -39,16 +39,18 @@ CpuScheduler.schedule = function() {
     }
 };
 
+// Sets the scheduling algorithm to one of three choices
 CpuScheduler.setAlgorithm = function(algorithm) {
+    // Checks if the specified algorithm exists
     algorithm = algorithm.toUpperCase();    
     if (CpuScheduler.algorithms[algorithm]) {
         CpuScheduler.algorithm = algorithm;
+        // Sets the quantum to the default quantum if the algorithm is round robin, otherwise 
+        // set it to infinity to simulate first come first serve and priority scheduling
         if (CpuScheduler.algorithm === "RR") {
             CpuScheduler.quantum = CpuScheduler.DEFAULT_QUANTUM;
-        } else if (CpuScheduler.algorithm === "FCFS") {
+        } else if (CpuScheduler.algorithm === "FCFS" || CpuScheduler.algorithm === "PRIORITY") {
             CpuScheduler.quantum = Number.MAX_VALUE;
-        } else if (CpuScheduler.algorithm === "PRIORITY") {
-            // TODO: Fix
         }
         return true;
     } else {       
@@ -56,12 +58,18 @@ CpuScheduler.setAlgorithm = function(algorithm) {
     }
 };
 
+// Gets the current scheduling algorithm
 CpuScheduler.getAlgorithm = function() {
     return CpuScheduler.algorithms[CpuScheduler.algorithm];
 };
 
+// Gets the next process from the ready queue (the criterion for process selection changes
+// based upon the current scheduling algorithm
 CpuScheduler.getNextProcess = function() {
+    // Get the process with the highest priority if the scheduling algo is set to priority,
+    // otherwise return the next process as normal
     if (CpuScheduler.algorithm === "PRIORITY") {
+        // Iterate through all the processes to find the one with the highest priority
         var priorityProcess = CpuScheduler.readyQueue.dequeue();
         for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
             var process = CpuScheduler.readyQueue.dequeue();

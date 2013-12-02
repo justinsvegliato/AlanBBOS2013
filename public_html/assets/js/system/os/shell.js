@@ -327,8 +327,10 @@ Shell.prototype.init = function() {
         if (ProcessManager.processControlBlocks.length) {
             Kernel.stdIn.handleResponse("Unrecognized process ID");
         } else {
+            // Execute all processes
             for (var key in ProcessManager.processControlBlocks) {
                 var pcb = ProcessManager.processControlBlocks[key];
+                // Only execture a process if it is not yet running
                 if (pcb.state === ProcessControlBlock.State.NEW) {
                     ProcessManager.execute(pcb);
                 }
@@ -352,11 +354,14 @@ Shell.prototype.init = function() {
     // The 'write' command
     shellCommand = new ShellCommand("write", "<filename> \"data\" - Writes the specified file", function(args) {
         if (args.length === 2) {
+            // Creates the variable containing data (must iterate through all arguments because
+            // the data may be spaced delimited)
             var data = "";
             for (var i = 1; i < args.length; i++) {
                 data += args[i];
             }
 
+            // Writes the file if there are quotes around the data
             if ((data.charAt(0) === "\"") && (data.charAt(data.length - 1) === "\"")) {
                 data = data.slice(1).slice(0, data.length - 2);
                 Kernel.handleInterupts(DISK_OPERATION_IRQ, ["write", args[0], data]);

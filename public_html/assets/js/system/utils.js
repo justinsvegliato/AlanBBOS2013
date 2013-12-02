@@ -82,6 +82,7 @@ function toHexidecimal(str) {
     return hex;
 }
 
+// Converts hexidecimal to ASCII
 function toASCII(hex) {
     var str = "";
     for (var i = 0; i < hex.length; i += 2) {
