@@ -319,7 +319,7 @@ Kernel.contextSwitchIsr = function() {
     var previousProcess = CpuScheduler.currentProcess;
     if (previousProcess) {
         _CPU.stop();
-        CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
+        CpuScheduler.currentProcess.state = ProcessControlBlock.State.READY;
         CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
     }
     

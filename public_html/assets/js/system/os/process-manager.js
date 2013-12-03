@@ -14,7 +14,6 @@ ProcessManager.load = function(program, priority) {
         // Create a new pcb and add it to the ready queue
         var pcb = new ProcessControlBlock(true, priority);
         ProcessManager.processControlBlocks[pcb.processId] = pcb;
-
         
         // Set the base and limit of the pcb as well as the memory locations
         var memoryLocations = program.split(/\s+/);
@@ -107,6 +106,6 @@ ProcessControlBlock.State = {
 };
 
 // TODO
-// Make sure hard drive doesn't go over capacity
-// Check if hard drive is correct size
-// Line wrap files
+// Space is not optimized during process handling
+// Fix FCFS
+// top command

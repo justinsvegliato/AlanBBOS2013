@@ -64,7 +64,7 @@
                             <div class="col-xs-12">
                                 <div class="panel panel-default">
                                     <div class="panel-heading">
-                                        <h6 class="panel-title">Processes</h6>
+                                        <h6 class="panel-title">Processes <span id="scheduling-algorithm" class="badge pull-right">Round Robin</span></h6>
                                     </div>
                                     <div id="process-display">
                                         <table class="table text-center">
@@ -77,12 +77,13 @@
                                                     <td>X</td>
                                                     <td>Y</td>
                                                     <td>Z</td>
-                                                    <td>Status</td>
+                                                    <td>Priority</td>
+                                                    <td>State</td>
                                                     <td>Location</td>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr><td class="lead text-center" colspan="9">No programs are in execution</td></tr>
+                                                <tr><td class="lead text-center" colspan="10">No programs are in execution</td></tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -115,7 +116,7 @@
                 <div id="hard-drive-display-container" class="col-xs-7">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h6 class="panel-title">Hard Drive</h6>
+                            <h6 class="panel-title">Hard Drive <span id="jump-button" class="glyphicon glyphicon-arrow-down pull-right"></span></h6>
                         </div>
                         <div id="hard-drive-display">
                             <table class="table table-condensed text-center">
@@ -163,6 +164,8 @@
                 </div>
             </div>
         </div>
+        
+        <div id="debugger"></div>
 
 
         <!-- Dependencies needed for all aspects of the application -->

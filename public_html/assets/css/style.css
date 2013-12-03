@@ -151,12 +151,12 @@ canvas:focus {
 .highlighted-memory-instruction, .highlighted-instruction {
     font-weight: bolder;
     color: #b31b1b;
-    text-shadow: #737072 0.075em 0.075em 0.1em;
+    text-shadow: #cccccc 0.075em 0.075em 0.1em
 }
 .highlighted-memory-parameter {
     font-weight: bolder;
     color: #5cb85c;
-    text-shadow: #737072 0.075em 0.075em 0.1em;
+    text-shadow: #cccccc 0.075em 0.075em 0.1em
 }
 #process-display {
     height: 110px;
@@ -188,6 +188,7 @@ canvas:focus {
 }
 #hard-drive-display td {
     padding: 1px !important;
+    padding-right: 8px !important
 }
 #hard-drive-display td small {    
     font-family: monospace;
@@ -196,4 +197,14 @@ canvas:focus {
 .memory-row {
     font-family: monospace;
     padding-left: 0px !important;
+}
+#process-display td {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+#jump-button:hover { 
+    cursor:pointer;
+}
+#jump-button {
+    display: none;
 }

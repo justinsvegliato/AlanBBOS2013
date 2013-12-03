@@ -13,6 +13,12 @@ CpuScheduler.currentProcess = null;
 // The default quantum value
 CpuScheduler.DEFAULT_QUANTUM = 6;
 
+// The maximum quantum value
+CpuScheduler.MAXIUM_QUANTUM = Number.MAX_VALUE;
+
+// The lowest priority
+CpuScheduler.LOWEST_PRIORITY = 32;
+
 // The timeslice that each process is allocated
 CpuScheduler.quantum = CpuScheduler.DEFAULT_QUANTUM;
 
@@ -50,8 +56,9 @@ CpuScheduler.setAlgorithm = function(algorithm) {
         if (CpuScheduler.algorithm === "RR") {
             CpuScheduler.quantum = CpuScheduler.DEFAULT_QUANTUM;
         } else if (CpuScheduler.algorithm === "FCFS" || CpuScheduler.algorithm === "PRIORITY") {
-            CpuScheduler.quantum = Number.MAX_VALUE;
+            CpuScheduler.quantum = CpuScheduler.MAXIUM_QUANTUM;
         }
+        ProcessDisplay.update();        
         return true;
     } else {       
         return false;

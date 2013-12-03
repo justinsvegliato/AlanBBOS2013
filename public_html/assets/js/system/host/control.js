@@ -49,6 +49,9 @@ Control.start = function() {
     
     // Send focus to the display (this will do more the in future)
     ConsoleDisplay.enterActiveState();
+    
+    // Display the jump button
+    HardDriveDisplay.enterActiveState();
         
     // Initialize the CPU
     _CPU = new Cpu();
@@ -71,6 +74,9 @@ Control.halt = function() {
     
     // Enable the start button and disable the halt/restart buttons
     TaskBarDisplay.enterInactiveState();
+    
+    // Display the jump button
+    HardDriveDisplay.enterInactiveState();
 };
 
 // Handles all logic associated with the blue screen of death
@@ -82,6 +88,7 @@ Control.bsod = function() {
     // Adjusts the display (show bsod) and taskbar (disable all buttons but restart) accordingly
     ConsoleDisplay.enterErrorState();
     TaskBarDisplay.enterErrorState();
+    HardDriveDisplay.enterInactiveState();
 };
 
 // Handles logic behind entering step mode by sending an interrupt to the kernel
@@ -104,6 +111,22 @@ Control.step = function() {
 // Handles all logic associated with resetting the operating system (just a restart)
 Control.reset = function() {
     location.reload(true);
+};
+
+// Jumps to the area on the disk that list files
+Control.jumpToFiles = function() {
+    HardDriveDisplay.jumpButton.removeClass("glyphicon-arrow-down").addClass("glyphicon-arrow-up").hide().fadeIn();
+    HardDriveDisplay.hardDrive.animate({
+        scrollTop: $("#tsb-" + HardDriveManager.FILENAME_TRACKS + "-0-0").offset().top - HardDriveDisplay.hardDrive.offset().top + HardDriveDisplay.hardDrive.scrollTop()
+    }, 100);
+};
+
+// Jumps to the area on the disk that list directories
+Control.jumpToDirectories = function() {
+    HardDriveDisplay.jumpButton.removeClass("glyphicon-arrow-up").addClass("glyphicon-arrow-down").hide().fadeIn();
+    HardDriveDisplay.hardDrive.animate({
+        scrollTop: $("#tsb-0-0-0").offset().top - HardDriveDisplay.hardDrive.offset().top + HardDriveDisplay.hardDrive.scrollTop()
+    }, 100);
 };
 
 // Attaches functions to the three buttons in the taskbar and initializes the console
@@ -136,6 +159,15 @@ $(document).ready(function() {
     // Handles logic behind the step button (as opposed to the button that starts step mode)
     $(TaskBarDisplay.stepButton).click(function() {
        Control.step(); 
+    });
+    
+    $(HardDriveDisplay.jumpButton).click(function() {
+        // Start the OS if the button is styled correctly, otherwise stop it
+        if (HardDriveDisplay.jumpButton.hasClass("glyphicon-arrow-up")) {
+            Control.jumpToDirectories();
+        } else {
+            Control.jumpToFiles();
+        }
     });
     
     $(".btn-group, #content").hide().fadeIn();

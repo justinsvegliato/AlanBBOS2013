@@ -26,7 +26,7 @@ DeviceDriverHardDrive.prototype.isr = function(params) {
     var requestedDiskOperation = params[0];
     var params = params.slice(1);
     
-    // Execute the disk operation if the operation is valid
+    // Execute the disk operation if valid
     var diskOperation = DeviceDriverHardDrive.diskOperations[requestedDiskOperation];
     if (diskOperation) {
         diskOperation(params);
@@ -38,15 +38,20 @@ DeviceDriverHardDrive.prototype.isr = function(params) {
 
 // Creates a file on the hard drive
 DeviceDriverHardDrive.createFile = function(params) {
-    var directory = params[0];
+    var filename = params[0];
     
-    // First check if the file has a .swp extension
-    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be created")) {
-        if (HardDriveManager.createFile(directory)) {
-            Kernel.stdIn.handleResponse("File created: " + directory);
+    // Check if the filename has a .swp extension
+    if (DeviceDriverHardDrive.checkIfSwapFile(filename, "File cannot be created")) {
+        var responseCode = HardDriveManager.createFile(filename);
+        if (responseCode === HardDriveManager.RESPONSE.SUCCESS) {
+            Kernel.stdIn.handleResponse("File created: " + filename);
+        } else if (responseCode === HardDriveManager.RESPONSE.ALREADY_EXISTS) {
+            Kernel.stdIn.handleResponse("File already exists: " + filename);
+        } else if (responseCode === HardDriveManager.RESPONSE.INVALID_DATA) {
+            Kernel.stdIn.handleResponse("Directory name too long: " + filename);
         } else {
-            Kernel.stdIn.handleResponse("File already exists: " + directory);
-        }
+            Kernel.stdIn.handleResponse("No directory space available");
+        }                
     }
 };
 
@@ -57,8 +62,7 @@ DeviceDriverHardDrive.listFiles = function() {
     if (files.length) {
         // Print out each file on the drive
         for (var i = 0; i < files.length; i++) {
-            Kernel.stdIn.handleResponse(files[i]);
-            Kernel.stdIn.advanceLine();
+            Kernel.stdIn.handleResponse(files[i] + " ");
         }
     } else {
         Kernel.stdIn.handleResponse("No files exist");
@@ -67,38 +71,44 @@ DeviceDriverHardDrive.listFiles = function() {
 
 // Writes data to the specified file
 DeviceDriverHardDrive.writeFile = function(params) {
-    var directory = params[0];
-    var data = params[1];
+    var filename = params[0];
+    var data = params[1];   
     
-    // First check if the file has a .swp extension
-    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be modified")) {
-        if (HardDriveManager.writeFile(directory, data)) {
-            Kernel.stdIn.handleResponse("File updated: " + directory);
-        } else {        
-            Kernel.stdIn.handleResponse("File does not exist: " + directory);
+    // Check if the filename has a .swp extension
+    if (DeviceDriverHardDrive.checkIfSwapFile(filename, "File cannot be modified")) {
+        var responseCode = HardDriveManager.writeFile(filename, data);
+        if (responseCode === HardDriveManager.RESPONSE.SUCCESS) {
+            Kernel.stdIn.handleResponse("File updated: " + filename);
+        } else if (responseCode === HardDriveManager.RESPONSE.DOES_NOT_EXIST) {        
+            Kernel.stdIn.handleResponse("File does not exist: " + filename);
+        } else if (responseCode === HardDriveManager.RESPONSE.INSUFFICIENT_SPACE) {
+            Kernel.stdIn.handleResponse("Not enough file space available");
         }
     }
 };
 
 // Reads the specified file from the disk
 DeviceDriverHardDrive.readFile = function(params) {
-    var directory = params[0];
-    var content = HardDriveManager.readFile(directory);
+    var filename = params[0];
+    var content = HardDriveManager.readFile(filename);
     if (content) {
         Kernel.stdIn.handleResponse(content);     
+    } else if (content === "") {
+        Kernel.stdIn.handleResponse("File is empty: " + filename);
     } else {        
-        Kernel.stdIn.handleResponse("File does not exist: " + directory);
+        Kernel.stdIn.handleResponse("File does not exist: " + filename);
     }
 };
 
 // Deletes the specified file from the disk
 DeviceDriverHardDrive.deleteFile = function(params) {
-    var directory = params[0];
-    if (DeviceDriverHardDrive.checkIfSwapFile(directory, "File cannot be deleted")) {
-        if (HardDriveManager.deleteFile(directory)) {
-            Kernel.stdIn.handleResponse("File deleted: " + directory);
+    var filename = params[0];
+    if (DeviceDriverHardDrive.checkIfSwapFile(filename, "File cannot be deleted")) {
+        var responseCode = HardDriveManager.deleteFile(filename);
+        if (responseCode === HardDriveManager.RESPONSE.SUCCESS) {
+            Kernel.stdIn.handleResponse("File deleted: " + filename);
         } else {        
-            Kernel.stdIn.handleResponse("File does not exist: " + directory);
+            Kernel.stdIn.handleResponse("File does not exist: " + filename);
         }
     }
 };
@@ -150,12 +160,12 @@ DeviceDriverHardDrive.formatDisk = function() {
     HardDriveManager.initialize();
 };
 
-// Checks if the file has a .swp extension (users cannot modify or create .swp files)
-DeviceDriverHardDrive.checkIfSwapFile = function(directory, message) {
-    if (!directory.match(/.swp$/)) {
+// Checks if the filename has a .swp extension (users cannot modify or create .swp files)
+DeviceDriverHardDrive.checkIfSwapFile = function(filename, message) {
+    if (!filename.match(/.swp$/)) {
         return true;
     }
-    Kernel.stdIn.handleResponse(message + ": " + directory);
+    Kernel.stdIn.handleResponse(message + ": " + filename);
     return false;
 };
 
