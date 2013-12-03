@@ -69,6 +69,20 @@ DeviceDriverHardDrive.listFiles = function() {
     }
 };
 
+// Lists all the files on the hard drive in size order
+DeviceDriverHardDrive.listFilesInSizeOrder = function() {
+    // Iterate through all files if they exist
+    var files = HardDriveManager.getFiles();
+    if (files.length) {
+        // Print out each file on the drive
+        for (var i = 0; i < files.length; i++) {
+            Kernel.stdIn.handleResponse(files[i] + " ");
+        }
+    } else {
+        Kernel.stdIn.handleResponse("No files exist");
+    }
+};
+
 // Writes data to the specified file
 DeviceDriverHardDrive.writeFile = function(params) {
     var filename = params[0];
@@ -127,7 +141,7 @@ DeviceDriverHardDrive.swap = function(params) {
     DeviceDriverHardDrive.unloadProcess([harddriveProcess]);
     
     // Deallocate and load the process onto the disk if there is a process in memory
-    if (inMemoryProcess) {
+    if (inMemoryProcess && MemoryManager.availableBlocks.length === 0) {
         DeviceDriverHardDrive.loadProcess([inMemoryProcess, inMemoryProcess.getProgram()]);  
         MemoryManager.deallocate(inMemoryProcess);
         inMemoryProcess.inMemory = false;
@@ -176,6 +190,7 @@ DeviceDriverHardDrive.diskOperations = {
     "write": DeviceDriverHardDrive.writeFile,
     "delete": DeviceDriverHardDrive.deleteFile,
     "ls": DeviceDriverHardDrive.listFiles,
+    "top": DeviceDriverHardDrive.listFilesInSizeOrder,
     "format": DeviceDriverHardDrive.formatDisk,
     "loadProcess": DeviceDriverHardDrive.loadProcess,
     "unloadProcess": DeviceDriverHardDrive.unloadProcess,
