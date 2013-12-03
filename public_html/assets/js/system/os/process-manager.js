@@ -104,8 +104,3 @@ ProcessControlBlock.State = {
     READY: "Ready",
     TERMINATED: "Terminated"
 };
-
-// TODO
-// Space is not optimized during process handling
-// Fix FCFS
-// top command
