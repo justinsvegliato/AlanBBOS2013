@@ -376,7 +376,11 @@ Shell.prototype.init = function() {
     
     // The 'read' command
     shellCommand = new ShellCommand("read", "<filename> - Reads the specified file", function(args) {
-        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["read", args[0]]);
+        if (args.length > 0) {
+            Kernel.handleInterupts(DISK_OPERATION_IRQ, ["read", args[0]]);
+        } else {
+            Kernel.stdIn.handleResponse("Usage: read <filename>");
+        }
     });
     this.commandList.push(shellCommand);
     

@@ -158,6 +158,7 @@ DeviceDriverHardDrive.unloadProcess = function(params) {
 // Erases the disk
 DeviceDriverHardDrive.formatDisk = function() {
     HardDriveManager.initialize();
+    Kernel.stdIn.handleResponse("Format successful");
 };
 
 // Checks if the filename has a .swp extension (users cannot modify or create .swp files)
