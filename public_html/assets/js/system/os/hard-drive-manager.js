@@ -59,9 +59,6 @@ HardDriveManager.initialize = function() {
     // Sets the MSB to the default values
     HardDriveManager.setHeader(0, 0, 0, "1000");
     HardDriveManager.setContent(0, 0, 0, "001100");
-
-    // Updates hard drive display with changes
-    HardDriveDisplay.update();
 };
 
 HardDriveManager.createFile = function(filename) {
@@ -99,9 +96,6 @@ HardDriveManager.createFile = function(filename) {
     // Sets next filename and file location
     HardDriveManager.setNextFilenameLocation(HardDriveManager.getNextAvailableFilenameTsb());
     HardDriveManager.setNextFileLocation(HardDriveManager.getNextAvailableFileTsb());
-
-    // Updates hard drive display with changes
-    HardDriveDisplay.update();
 
     return HardDriveManager.RESPONSE.SUCCESS;
 };
@@ -167,9 +161,6 @@ HardDriveManager.writeFile = function(filename, data) {
         // Moves onto the next part of the file
         fileTsb = nextFileLocationTsb;
     }
-
-    // Updates hard drive display with changes
-    HardDriveDisplay.update();
 
     return HardDriveManager.RESPONSE.SUCCESS;
 };
@@ -237,9 +228,6 @@ HardDriveManager.deleteFile = function(filename) {
     // Sets next filename and file location
     HardDriveManager.setNextFilenameLocation(HardDriveManager.getNextAvailableFilenameTsb());
     HardDriveManager.setNextFileLocation(HardDriveManager.getNextAvailableFileTsb());
-
-    // Updates hard drive display with changes
-    HardDriveDisplay.update();
 
     return HardDriveManager.RESPONSE.SUCCESS;
 };
