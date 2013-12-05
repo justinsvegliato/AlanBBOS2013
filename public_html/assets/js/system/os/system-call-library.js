@@ -28,6 +28,11 @@ SystemCallLibrary.terminateProcess = function(params) {
     // Terminate the process and unload it from the process manager (which de-allocates memory)
     pcb.state = ProcessControlBlock.State.TERMINATED;
     ProcessManager.unload(pcb);
+    
+    // Update all displays   
+    MemoryDisplay.update();
+    ProcessDisplay.update();
+    CpuDisplay.update();
 };
 
 // Print the contents of the y Register.

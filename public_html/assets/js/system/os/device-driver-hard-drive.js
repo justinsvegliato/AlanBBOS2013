@@ -30,6 +30,7 @@ DeviceDriverHardDrive.prototype.isr = function(params) {
     var diskOperation = DeviceDriverHardDrive.diskOperations[requestedDiskOperation];
     if (diskOperation) {
         diskOperation(params);
+        HardDriveDisplay.update();
     } else {
         var message = "Invalid disk operation specified: " + requestedDiskOperation;
         Kernel.handleInterupts(DISK_OPERATION_FAULT_IRQ, [message, params[0]]);

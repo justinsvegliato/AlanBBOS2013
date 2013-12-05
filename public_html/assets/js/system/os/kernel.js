@@ -207,11 +207,7 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
         // Trap if the interrupt is not recognized
         default:
             Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
-    }
-    
-    MemoryDisplay.update();     
-    ProcessDisplay.update();
-    CpuDisplay.update();
+    }   
 };
 
 //
@@ -267,15 +263,15 @@ Kernel.systemCallIsr = function(params) {
 Kernel.stepIsr = function() {
     // Increment the cycle and check if a new process should be switched in
     CpuScheduler.cycle++;
-    CpuScheduler.schedule();
+    CpuScheduler.schedule();   
+    
+    // Just simply call cycle() to handle the next instruction
+    _CPU.cycle(); 
     
     // Update appropriate displays
     MemoryDisplay.update();
     ProcessDisplay.update();
     CpuDisplay.update();
-    
-    // Just simply call cycle() to handle the next instruction
-    _CPU.cycle(); 
 };
 
 // The interrupt service routine that activates/deactivates step mode
@@ -340,6 +336,11 @@ Kernel.contextSwitchIsr = function() {
         }
         Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", previousProcess, CpuScheduler.currentProcess]);    
     }
+    
+    // Update all displays
+    MemoryDisplay.update();     
+    ProcessDisplay.update();
+    CpuDisplay.update();
     
     // Starts the new process
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
