@@ -15,6 +15,7 @@ function Kernel() {};
 // Properties
 //
 Kernel.keyboardDriver = null;
+Kernel.hardDriveDriver = null;
 Kernel.interruptQueue = null;
 Kernel.buffers = null;
 Kernel.inputQueue = null;
@@ -51,11 +52,17 @@ Kernel.bootstrap = function() {
 
     // Load the keyboard device driver
     Kernel.trace("Loading the keyboard device driver");
-    Kernel.keyboardDriver = new Queue();
     Kernel.keyboardDriver = new DeviceDriverKeyboard();
     Kernel.keyboardDriver.driverEntry();
     Kernel.trace(Kernel.keyboardDriver.status);
     
+    // Load the hard drive device driver
+    Kernel.trace("Loading the hard drive device driver");
+    Kernel.hardDriveDriver = new DeviceDriverHardDrive();
+    Kernel.hardDriveDriver.driverEntry();
+    Kernel.trace(Kernel.hardDriveDriver.status);
+    
+    // Loading all kernal structures associated with process and memory management
     Kernel.memoryManager = MemoryManager;
     Kernel.processManager = ProcessManager;  
     Kernel.systemCallLibrary= SystemCallLibrary;
@@ -78,7 +85,8 @@ Kernel.bootstrap = function() {
         _GLaDOS.afterStartup();
     }
     
-    Control.update();
+    // Update task bar display
+    TaskBarDisplay.updateDateTime();
 };
 
 // Handles logic associated with terminating the system
@@ -113,13 +121,16 @@ Kernel.pulse = function() {
         Kernel.handleInterupts(interrupt.irq, interrupt.params);
     } else if (_CPU.isExecuting && !Kernel.isStepModeActivated) {
         CpuScheduler.cycle++;
-        _CPU.cycle();             
+        _CPU.cycle();   
+        MemoryDisplay.update();        
+        ProcessDisplay.update();   
+        CpuDisplay.update();
     } else {
         Kernel.trace("Idle");
     } 
     
-    // Update the displays
-    Control.update();
+    // Update appropriate displays
+    TaskBarDisplay.updateDateTime();
     
     // Check if a new process should start execution
     CpuScheduler.schedule();
@@ -180,6 +191,12 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
         case PROCESS_FAULT_IRQ:
             Kernel.processFaultIsr(params);
             break;
+        case DISK_OPERATION_FAULT_IRQ:
+            Kernel.diskOperationFaultIsr(params);
+            break;
+        case DISK_OPERATION_IRQ:
+            Kernel.hardDriveDriver.isr(params);
+            break;            
         // The routine that handles error that occur when a process is loaded
         case PROCESS_LOAD_FAULT_IRQ:
             Kernel.processLoadFaultIsr(params);
@@ -192,7 +209,9 @@ Kernel.handleInterupts = krnInterruptHandler = function(irq, params) {
             Kernel.trapError("Invalid Interrupt Request: irq=" + irq + " params=[" + params + "]");
     }
     
-    Control.update();
+    MemoryDisplay.update();     
+    ProcessDisplay.update();
+    CpuDisplay.update();
 };
 
 //
@@ -240,7 +259,7 @@ Kernel.systemCallIsr = function(params) {
         systemCall(params);
     } else {
         var message = "Invalid system call id: " + systemCallId;
-        Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, params[0]])
+        Kernel.handleInterupts(PROCESS_FAULT_IRQ, [message, params[0]]);
     }  
 };
 
@@ -249,6 +268,11 @@ Kernel.stepIsr = function() {
     // Increment the cycle and check if a new process should be switched in
     CpuScheduler.cycle++;
     CpuScheduler.schedule();
+    
+    // Update appropriate displays
+    MemoryDisplay.update();
+    ProcessDisplay.update();
+    CpuDisplay.update();
     
     // Just simply call cycle() to handle the next instruction
     _CPU.cycle(); 
@@ -275,20 +299,49 @@ Kernel.processFaultIsr = function(params) {
     Kernel.trace(message);
 };
 
+Kernel.diskOperationFaultIsr = function(params) {
+    var message = params[0];      
+    
+    // Do some output to alert the user of the error
+    Kernel.console.handleResponse(message);
+    Kernel.console.advanceLine();
+    Kernel.console.putText(Kernel.shell.promptStr);       
+    
+    Kernel.trace(message);
+};
+
 Kernel.contextSwitchIsr = function() {
     // This code handles switching the processes
     Kernel.trace("Scheduling new process");
     
     // If there is a process being executed, stop it, set the state to waiting, and put it
     // back on the queue
-    if (CpuScheduler.currentProcess) {
+    var previousProcess = CpuScheduler.currentProcess;
+    if (previousProcess) {
         _CPU.stop();
-        CpuScheduler.currentProcess.state = ProcessControlBlock.State.WAITING;
+        CpuScheduler.currentProcess.state = ProcessControlBlock.State.READY;
         CpuScheduler.readyQueue.enqueue(CpuScheduler.currentProcess);
-    }   
+    }
     
     // Load the new process regardless
-    CpuScheduler.currentProcess = CpuScheduler.readyQueue.dequeue();
+    CpuScheduler.currentProcess = CpuScheduler.getNextProcess();   
+    
+    // Swap the old process out with the new process; note that sometimes the old process will
+    // be null if we just started process execution
+    if (!CpuScheduler.currentProcess.inMemory) {
+        if (!previousProcess) {
+            for (var key in ProcessManager.processControlBlocks) {
+                var process = ProcessManager.processControlBlocks[key];
+                if (process.inMemory) {
+                   previousProcess = process;
+                   break;
+                }
+            }
+        }
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["swap", previousProcess, CpuScheduler.currentProcess]);    
+    }
+    
+    // Starts the new process
     CpuScheduler.currentProcess.state = ProcessControlBlock.State.RUNNING;
     _CPU.start(CpuScheduler.currentProcess);
     CpuScheduler.cycle = 0;

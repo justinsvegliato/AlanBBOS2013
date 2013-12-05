@@ -1,7 +1,6 @@
 /**
  * Singleton class that handles the display for the host
  */
-
 function ConsoleDisplay() {};
 
 // Necessary canvas variables
@@ -14,11 +13,11 @@ ConsoleDisplay.FONT_SIZE = 13;
 ConsoleDisplay.FONT_HEIGHT_MARGIN = 4;
 
 // The height and width of the container
-ConsoleDisplay.CONTAINER_HEIGHT = 535;
+ConsoleDisplay.CONTAINER_HEIGHT = 457;
 ConsoleDisplay.CONTAINER_WIDTH = 515;
 
 // The height and width of the canvas
-ConsoleDisplay.CANVAS_HEIGHT = 510;
+ConsoleDisplay.CANVAS_HEIGHT = 450;
 ConsoleDisplay.CANVAS_WIDTH = 505;
 
 // The margin of the canvas within the container

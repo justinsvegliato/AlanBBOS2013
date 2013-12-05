@@ -21,7 +21,7 @@ Shell.prototype.init = function() {
     // In this method, each command is constructed by instantiating a ShellCommand with 
     // the command name, the description of the command, and the function associated with 
     // the command. 
-
+    
     // The 'ver' command
     var shellCommand = new ShellCommand("ver", "- Displays the current version data", function() {
         Kernel.stdIn.handleResponse(APP_NAME + " v" + APP_VERSION);
@@ -56,7 +56,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'cls' command
-    shellCommand = new ShellCommand("cls", "- Clears the screen and resets the cursor position", function() {
+    shellCommand = new ShellCommand("cls", "- Clears the screen", function() {
         Kernel.stdIn.clearScreen();
         Kernel.stdIn.resetPosition();
         Kernel.stdIn.resetSize();
@@ -115,7 +115,11 @@ Shell.prototype.init = function() {
     // The 'quantum' command
     shellCommand = new ShellCommand("quantum", "<integer> - Changes the CPU quantum", function(args) {
         if (args.length > 0) {
-            CpuScheduler.quantum = parseInt(args[0]);
+            if (CpuScheduler.getAlgorithm() !== "First Come First Serve" && CpuScheduler.getAlgorithm() !== "Priority") {
+                CpuScheduler.quantum = parseInt(args[0]);
+            } else {
+                Kernel.stdIn.handleResponse("Quantum cannot be changed in current scheduling mode");
+            }
         } else {
             Kernel.stdIn.handleResponse("Usage: quantum <integer>");
         }
@@ -147,7 +151,11 @@ Shell.prototype.init = function() {
     // The 'status' command
     shellCommand = new ShellCommand("status", "<string> - Sets a status message", function(args) {
         if (args.length > 0) {
-            TaskBarDisplay.setStatus(args[0]);
+            var status = "";
+            for (var i = 0; i < args.length; i++) {
+                status += args[i] + " ";
+            }
+            TaskBarDisplay.setStatus(status);
         } else {
             Kernel.stdIn.handleResponse("Usage: status <string>");
         }
@@ -155,8 +163,8 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'ps' command
-    shellCommand = new ShellCommand("ps", "Shows all active processes", function(args) {
-        // Display a process to the cnsole
+    shellCommand = new ShellCommand("ps", "- Shows all active processes", function(args) {
+        // Display a process to the console
         var displayProcess = function(process) {
             var message = "{0} {1} {2} {3} {4} {5} {6}".format(
                 pad(process.processId, 4, " "), 
@@ -214,28 +222,55 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
 
     // The 'load' command
-    shellCommand = new ShellCommand("load", "- Validates the specified user program", function() {
+    shellCommand = new ShellCommand("load", "[<priority>] - Loads the specified user program", function(args) {
         var program = document.getElementById('taProgramInput').value.trim();
         this.validate = function(program) {
             // Print an error if the input is empty
             if (program.length <= 0) {
                 return "No program was specified";
-            }
+            }            
 
             // Split the input space and interate through each command
             var components = program.split(/\s+/);
-            for (var i = 0; i < components.length; i++) {
-                // Print an error if the instruction contains an invalid character (non-hexidecimal)
-                if (!components[i].match(/^[a-f0-9]+$/i)) {
-                    return "Invalid character: " + components[i];
+            if (components.length <= MemoryManager.BLOCK_SIZE) {
+                for (var i = 0; i < components.length; i++) {
+                    // Print an error if the instruction contains an invalid character (non-hexidecimal)
+                    if (!components[i].match(/^[a-f0-9]+$/i)) {
+                        return "Invalid character: " + components[i];
+                    }
                 }
-            }
 
-            // Load the program into memory and display the process id
-            var pcb = ProcessManager.load(program);
-            if (pcb) {
-                return "Process ID: " + pcb.processId;
+                // Load the program into memory and display the process id - if no priority
+                // is specifid it is given the lowest priority
+                var priority = CpuScheduler.LOWEST_PRIORITY;
+                if (args.length > 0) {
+                    if (!isNaN(args[0])) {
+                        // Convert string into integer
+                        priority = parseInt(args[0]);
+
+                        // Just set it to the highest priority if the argument is higher than the highest priority
+                        if (priority > CpuScheduler.LOWEST_PRIORITY) {
+                            priority = CpuScheduler.LOWEST_PRIORITY;
+                        }
+
+                        // Just set the priority to 0 if a negatie number was specified
+                        if (priority < 0) {
+                            priority = 0;
+                        }  
+                    } else {
+                        return "Invalid priority";
+                    }
+                } 
+                
+                // Load the program into the manager
+                var pcb = ProcessManager.load(program, priority);
+                if (pcb) {
+                    return "Process ID: " + pcb.processId;
+                }
+            } else {
+                return "Program is too large";
             }
+            
         };
         Kernel.stdIn.handleResponse(validate(program));
     });
@@ -295,13 +330,18 @@ Shell.prototype.init = function() {
     // The 'run' command
     shellCommand = new ShellCommand("run", "<processid> - Executes a program in memory", function(args) {
         // Get the pcb associated with the specified id
+        var processId = args[0];
         var pcb = ProcessManager.processControlBlocks[args[0]];
 
         // Execute the process if it is not null, otherwise print an error
-        if (pcb) {
-            ProcessManager.execute(pcb);
+        if (pcb) {        
+            if (pcb.state === ProcessControlBlock.State.NEW) {
+                ProcessManager.execute(pcb);
+            } else {
+                Kernel.stdIn.handleResponse("Process already executing: " + processId);
+            }
         } else {
-            Kernel.stdIn.handleResponse("Unrecognized process ID");
+            Kernel.stdIn.handleResponse("Unrecognized process ID: " + processId);
         }
     });
     this.commandList.push(shellCommand);
@@ -312,14 +352,93 @@ Shell.prototype.init = function() {
         if (ProcessManager.processControlBlocks.length) {
             Kernel.stdIn.handleResponse("Unrecognized process ID");
         } else {
+            // Execute all processes
             for (var key in ProcessManager.processControlBlocks) {
                 var pcb = ProcessManager.processControlBlocks[key];
-                ProcessManager.execute(pcb);
+                // Only execture a process if it is not yet running
+                if (pcb.state === ProcessControlBlock.State.NEW) {
+                    ProcessManager.execute(pcb);
+                }
             }
         }
     });
     this.commandList.push(shellCommand);
+    
+    // The 'create' command
+    shellCommand = new ShellCommand("create", "<filename> - Creates the specified file", function(args) {
+        if (args.length > 0) {
+            Kernel.handleInterupts(DISK_OPERATION_IRQ, ["create", args[0]]);
+        } else {
+            Kernel.stdIn.handleResponse("Usage: create <filename>");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'read' command
+    shellCommand = new ShellCommand("read", "<filename> - Reads the specified file", function(args) {
+        if (args.length > 0) {
+            Kernel.handleInterupts(DISK_OPERATION_IRQ, ["read", args[0]]);
+        } else {
+            Kernel.stdIn.handleResponse("Usage: read <filename>");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'write' command
+    shellCommand = new ShellCommand("write", "<filename> \"data\" - Writes the specified file", function(args) {
+        if (args.length >= 2 ) {
+            // Creates the variable containing data (must iterate through all arguments because
+            // the data may be spaced delimited)
+            var data = "";
+            for (var i = 1; i < args.length; i++) {
+                data += args[i] + " ";
+            }
 
+            // Writes the file if there are quotes around the data
+            if ((data.charAt(0) === "\"") && (data.charAt(data.length - 2) === "\"")) {
+                data = data.slice(1).slice(0, data.length - 3);
+                Kernel.handleInterupts(DISK_OPERATION_IRQ, ["write", args[0], data]);
+            } else {
+                Kernel.stdIn.handleResponse("Data must be surrounded by quotes");
+            }
+        } else {
+            Kernel.stdIn.handleResponse("Usage: write <filename> \"data\"");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'delete' command
+    shellCommand = new ShellCommand("delete", "<filename> - Deletes the specified file", function(args) {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["delete", args[0]]);
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'format' command
+    shellCommand = new ShellCommand("format", "- Initializes disk", function() {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["format"]);
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'ls' command
+    shellCommand = new ShellCommand("ls", "- Lists all files on disk", function() {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["ls"]);
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'setschedule' command
+    shellCommand = new ShellCommand("setschedule", "- [rr, fcfs, priority] Sets the algorithm", function(args) {
+        if (!args[0] || !CpuScheduler.setAlgorithm(args[0])) {
+            Kernel.stdIn.handleResponse("Unrecognized scheduling algorithm");
+        }
+    });
+    this.commandList.push(shellCommand);
+    
+    // The 'getschedule' command
+    shellCommand = new ShellCommand("getschedule", "- Gets the algorithm", function(args) {
+        Kernel.stdIn.handleResponse(CpuScheduler.getAlgorithm());
+    });
+    this.commandList.push(shellCommand);    
+    
     this.putPrompt();
 };
 

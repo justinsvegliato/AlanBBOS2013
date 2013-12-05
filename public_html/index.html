@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
         <meta name="author" content="Justin Svegliato" />
-        <title>SvegOS v0.01</title>
+        <title>SvegOS v0.1</title>
 
         <link href="assets/css/bootstrap.css" rel="stylesheet">
         <link href="assets/css/style.css" rel="stylesheet">
@@ -19,7 +19,7 @@
         <div id="navigation" class="navbar navbar-default navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <span class="navbar-brand">Sveg<strong class="text-primary">OS</strong></span>
+                    <span id="brand" class="navbar-brand">Sveg<strong class="text-primary">OS</strong></span>
                 </div>
 
                 <div id="controls" class="btn-group nav navbar-form navbar-right">
@@ -42,121 +42,131 @@
         <div id="content" class="container">
             <div class="row">
                 <div id="console" class="col-xs-7">
-                    <h3>Shell</h3>
                     <div id="display-container" class="well well-sm">
-                        <canvas id="display" tabindex="1" width="515" height="510"></canvas>                                
+                        <canvas id="display" tabindex="1" width="515" height="435"></canvas>                                
                         <canvas id="storage"></canvas>
                     </div>
                 </div>
 
                 <div class="col-xs-5">
-                    <div class="row">
-                        <h3>Logs</h3>
+                    <div class="row">                        
                         <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h6 class="panel-title">Log</h6>
+                            </div>
+
                             <div id="log" class="panel-body"></div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <ul class="nav nav-tabs nav-justified" data-tabs="tabs">
-                            <li class="active"><a data-toggle="tab" href="#execution">Execution</a></li>
-                            <li><a data-toggle="tab" href="#analysis">Analysis</a></li>
-                        </ul>
-
-                        <div class="tab-content">                            
-                            <div class="tab-pane fade in active" id="execution">                                
-                                <div class="row">
-                                    <div class="col-xs-12">
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                <h3 class="panel-title">Process Results</h3>
-                                            </div>
-                                            <div id="process-display">
-                                                <table class="table text-center">
-                                                    <thead>
-                                                        <tr>
-                                                            <td>PID</td>                                                  
-                                                            <td>PC</td>
-                                                            <td>IR</td>
-                                                            <td>ACC</td>
-                                                            <td>X</td>
-                                                            <td>Y</td>
-                                                            <td>Z</td>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr><td class="lead text-center" colspan="7">No programs are in execution</td></tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                    <div class="row">                             
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h6 class="panel-title">Processes <span id="scheduling-algorithm" class="badge pull-right">Round Robin</span></h6>
                                     </div>
-                                </div>   
-
-                                <div class="row">
-                                    <div class="col-xs-12">
-                                        <textarea id="taProgramInput" class="well well-sm form-control" placeholder="Type assembly instructions here...">A9 03 8D 41 00 A9 01 8D 40 00 AC 40 00 A2 01 FF EE 40 00 AE 40 00 EC 41 00 D0 EF A9 44 8D 42 00 A9 4F 8D 43 00 A9 4E 8D 44 00 A9 45 8D 45 00 A9 00 8D 46 00 A2 02 A0 42 FF 00</textarea>
-                                    </div>
-                                </div>                           
-                            </div>
-
-                            <div class="tab-pane fade" id="analysis">
-                                <div class="row">
-                                    <div class="col-xs-12">
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                <h3 class="panel-title">Memory</h3>
-                                            </div>
-
-                                            <div id="memory-display">
-                                                <table class="table table-condensed text-center">
-                                                    <tbody>
-                                                        <tr><td class="lead text-center">Memory is initialized at start up</td></tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                    <div id="process-display">
+                                        <table class="table text-center">
+                                            <thead>
+                                                <tr>
+                                                    <td>PID</td>                                                  
+                                                    <td>PC</td>
+                                                    <td>IR</td>
+                                                    <td>ACC</td>
+                                                    <td>X</td>
+                                                    <td>Y</td>
+                                                    <td>Z</td>
+                                                    <td>Priority</td>
+                                                    <td>State</td>
+                                                    <td>Location</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td class="lead text-center" colspan="10">No programs are in execution</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
+                            </div>
+                        </div>   
 
-                                <div class="row">
-                                    <div id="cpu-display" class="col-xs-12">
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                <h3 class="panel-title">CPU</h3>
-                                            </div>
-
-                                            <table class="table table-striped text-center">
-                                                <thead>
-                                                    <tr>
-                                                        <td>PC</td>
-                                                        <td>IR</td>
-                                                        <td>ACC</td>
-                                                        <td>X</td>
-                                                        <td>Y</td>
-                                                        <td>Z</td>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td id="pc-value">0</td>
-                                                        <td id="ir-value">0</td>
-                                                        <td id="acc-value">0</td>
-                                                        <td id="x-value">0</td>
-                                                        <td id="y-value">0</td>
-                                                        <td id="z-value">0</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>                                   
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h6 class="panel-title">Memory</h6>
+                                    </div>
+                                    <div id="memory-display">
+                                        <table class="table table-condensed text-center">
+                                            <tbody >
+                                                <tr><td class="lead text-center">Memory is initialized at start up</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div id="hard-drive-display-container" class="col-xs-7">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h6 class="panel-title">Hard Drive <span id="jump-button" class="glyphicon glyphicon-arrow-down pull-right"></span></h6>
+                        </div>
+                        <div id="hard-drive-display">
+                            <table class="table table-condensed text-center">
+                                <tbody>
+                                    <tr><td colspan="3" class="lead text-center">The hard drive is initialized at start up</td></tr>
+                                </tbody>
+                            </table>
+                        </div>  
+                    </div>
+                </div>
+
+                <div id="cpu-display" class="col-xs-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h6 class="panel-title">CPU <span id="instruction-details" class="badge pull-right">No Instruction</span></h6>
+                        </div>
+
+                        <table class="table table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <td>PC</td>
+                                    <td>IR</td>
+                                    <td>ACC</td>
+                                    <td>X</td>
+                                    <td>Y</td>
+                                    <td>Z</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="pc-value">0</td>
+                                    <td id="ir-value" class="highlighted-instruction">0</td>
+                                    <td id="acc-value">0</td>
+                                    <td id="x-value">0</td>
+                                    <td id="y-value">0</td>
+                                    <td id="z-value">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>    
+
+                <div class="col-xs-2">
+                    <textarea id="taProgramInput" class="well well-sm form-control" placeholder="Type assembly instructions here...">A9 03 8D 41 00 A9 01 8D 40 00 AC 40 00 A2 01 FF EE 40 00 AE 40 00 EC 41 00 D0 EF A9 44 8D 42 00 A9 4F 8D 43 00 A9 4E 8D 44 00 A9 45 8D 45 00 A9 00 8D 46 00 A2 02 A0 42 FF 00</textarea>
+                </div>
+            </div>
         </div>
+        
+        <div id="debugger"></div>
+
 
         <!-- Dependencies needed for all aspects of the application -->
         <script src="assets/js/jquery.js"></script>
@@ -176,7 +186,8 @@
         <script type="text/javascript" src="assets/js/system/host/devices.js"></script>
         <script type="text/javascript" src="assets/js/system/host/cpu.js"></script>
         <script type="text/javascript" src="assets/js/system/host/memory.js"></script>
-        
+        <script type="text/javascript" src="assets/js/system/host/hard-drive.js"></script>
+
         <!-- Display routines (note this is part of the OS as well -->
         <script type="text/javascript" src="assets/js/system/os/display/console-display.js"></script>
         <script type="text/javascript" src="assets/js/system/os/display/log-display.js"></script>
@@ -184,6 +195,7 @@
         <script type="text/javascript" src="assets/js/system/os/display/cpu-display.js"></script>
         <script type="text/javascript" src="assets/js/system/os/display/memory-display.js"></script>
         <script type="text/javascript" src="assets/js/system/os/display/process-display.js"></script>       
+        <script type="text/javascript" src="assets/js/system/os/display/hard-drive-display.js"></script>  
 
         <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
         <script type="text/javascript" src="assets/js/system/os/memory-manager.js"></script>
@@ -193,13 +205,14 @@
         <script type="text/javascript" src="assets/js/system/os/device-driver.js"></script>
         <script type="text/javascript" src="assets/js/system/os/cpu-scheduler.js"></script>
         <script type="text/javascript" src="assets/js/system/os/device-driver-keyboard.js"></script>
+        <script type="text/javascript" src="assets/js/system/os/device-driver-hard-drive.js"></script>
         <script type="text/javascript" src="assets/js/system/os/shell.js"></script>
         <script type="text/javascript" src="assets/js/system/os/system-call-library.js"></script>
         <script type="text/javascript" src="assets/js/system/os/kernel.js"></script>
         <script type="text/javascript" src="assets/js/system/os/process-manager.js"></script>
-        
+        <script type="text/javascript" src="assets/js/system/os/hard-drive-manager.js"></script>
 
         <!-- Other Routines -->
-        <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>
+        <!--<script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script>-->
     </body>
 </html>

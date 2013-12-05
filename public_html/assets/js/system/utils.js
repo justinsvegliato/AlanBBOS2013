@@ -57,7 +57,7 @@ function rot13(str) {
 // corresponding parameter sent to the function
 String.prototype.format = String.prototype.f = function() {
     var s = this,
-        i = arguments.length;
+            i = arguments.length;
     while (i--) {
         s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
     }
@@ -80,4 +80,15 @@ function toHexidecimal(str) {
         hex += '' + str.charCodeAt(i).toString(16);
     }
     return hex;
+}
+
+// Converts hexidecimal to ASCII
+function toASCII(hex) {
+    var str = "";
+    for (var i = 0; i < hex.length; i += 2) {
+        var characterCode = parseInt(hex.substr(i, 2), 16);
+        var character = (characterCode === 0) ? "0" : String.fromCharCode(characterCode);
+        str += character;
+    }
+    return str;
 }

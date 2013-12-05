@@ -4,35 +4,41 @@
 
 function ProcessManager() {};
 
-// The list of all processes waiting to be handled (the ready queue!)
+// The list of all processes waiting to be handled
 ProcessManager.processControlBlocks = {};
 
 // Loads the specified program into memory
-ProcessManager.load = function(program) {
-    // If there is space available to be allocated, do so. Otherwise send an interrupt to the kernel
+ProcessManager.load = function(program, priority) {
+    // Allocate memory space if available, otherwise store it on the hard drive
     if (Object.keys(ProcessManager.processControlBlocks).length < MemoryManager.NUMBER_OF_BLOCKS) {
         // Create a new pcb and add it to the ready queue
-        var pcb = new ProcessControlBlock();
+        var pcb = new ProcessControlBlock(true, priority);
         ProcessManager.processControlBlocks[pcb.processId] = pcb;
         
-        // Set the base and limit of the pcb
-        MemoryManager.allocate(pcb);               
-
-        // Load the program into memory
-        var components = program.split(/\s+/);
-        for (var i = 0; i < components.length; i++) {
-            MemoryManager.write(components[i], i + pcb.base);
-        }
+        // Set the base and limit of the pcb as well as the memory locations
+        var memoryLocations = program.split(/\s+/);
+        MemoryManager.allocate(pcb, memoryLocations);
 
         return pcb;
     } else {
-        Kernel.handleInterupts(PROCESS_LOAD_FAULT_IRQ, "Insufficient memory");
+        // Create a new pcb and add it to the ready queue
+        var pcb = new ProcessControlBlock(false, priority);
+        ProcessManager.processControlBlocks[pcb.processId] = pcb;
+        
+        // Send the program to the disk
+        var modifiedProgram = program.split(/\s+/).join('');
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["loadProcess", pcb, modifiedProgram]);
+        return pcb;
     }
 };
 
 // Unloads the specified program from memory
 ProcessManager.unload = function(pcb) {
-    MemoryManager.deallocate(pcb);
+    if (pcb.inMemory) {
+        MemoryManager.deallocate(pcb);
+    } else {
+        Kernel.handleInterupts(DISK_OPERATION_IRQ, ["unloadProcess", pcb]);
+    }
     delete ProcessManager.processControlBlocks[pcb.processId];
 };
 
@@ -45,23 +51,26 @@ ProcessManager.execute = function(pcb) {
 //
 // An interior class to represent the process control block
 //
-function ProcessControlBlock() {
+function ProcessControlBlock(inMemory, priority) {
     // Increment the process id every time a pcb is constructed
-    this.processId = ProcessControlBlock.lastProcessId++;  
-    
+    this.processId = ProcessControlBlock.lastProcessId++;
+
     this.programCounter = 0;
     this.instructionRegister = 0;
     this.accumulator = 0;
     this.xRegister = 0;
     this.yRegister = 0;
     this.zFlag = 0;
-    this.state = ProcessControlBlock.State.NEW;
     
-    this.output = "";
-       
     this.base = null;
     this.limit = null;
     
+    this.state = ProcessControlBlock.State.NEW;
+    
+    this.output = "";    
+    this.inMemory = inMemory;
+    this.priority = priority;
+
     // Updates the pcb - this will be used for context switching
     this.update = function(programCounter, instructionRegister, accumulator, xRegister, yRegister, zFlag) {
         this.programCounter = programCounter;
@@ -70,6 +79,17 @@ function ProcessControlBlock() {
         this.xRegister = xRegister;
         this.yRegister = yRegister;
         this.zFlag = zFlag;
+    };
+
+    // Retrieves the program associated with this particular PCB only if stored in memory
+    this.getProgram = function() {
+        if (this.base !== null && this.limit !== null) {
+            var program = "";
+            for (var i = 0; i < this.limit; i++) {
+                program += MemoryManager.read(i, this);
+            }
+            return program;
+        }
     };
 }
 
