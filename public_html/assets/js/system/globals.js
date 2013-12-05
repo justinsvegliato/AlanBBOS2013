@@ -11,7 +11,7 @@
 // Global CONSTANTS
 //
 var APP_NAME = "SvegOS";
-var APP_VERSION = "v0.1";
+var APP_VERSION = "0.1";
 var CPU_CLOCK_INTERVAL = 50;
 var TIMER_IRQ = 0;
 var KEYBOARD_IRQ = 1;
