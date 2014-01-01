@@ -158,6 +158,15 @@ DeviceDriverHardDrive.unloadProcess = function(params) {
 
 // Erases the disk
 DeviceDriverHardDrive.formatDisk = function() {
+    for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
+        var process = CpuScheduler.readyQueue.dequeue();
+        CpuScheduler.readyQueue.enqueue(process);
+        if (!process.inMemory) {
+            Kernel.stdIn.handleResponse("Format unsuccessful: Processes found on disk"); 
+            return;
+        }
+    }
+    
     HardDriveManager.initialize();
     Kernel.stdIn.handleResponse("Format successful");
 };
