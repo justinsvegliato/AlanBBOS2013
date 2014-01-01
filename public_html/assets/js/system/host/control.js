@@ -61,7 +61,9 @@ Control.start = function() {
     // Start the bootstrap process for the operating system
     Kernel.bootstrap();
     
+    // Updates display
     MemoryDisplay.update();
+    HardDriveDisplay.update();
 };
 
 // Handles all logic associated with halting the operating system
