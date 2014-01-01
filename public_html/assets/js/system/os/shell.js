@@ -414,7 +414,7 @@ Shell.prototype.init = function() {
     this.commandList.push(shellCommand);
     
     // The 'format' command
-    shellCommand = new ShellCommand("format", "- Initializes disk", function() {
+    shellCommand = new ShellCommand("format", "- Initializes disk", function() {      
         Kernel.handleInterupts(DISK_OPERATION_IRQ, ["format"]);
     });
     this.commandList.push(shellCommand);
