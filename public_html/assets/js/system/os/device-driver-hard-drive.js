@@ -158,6 +158,7 @@ DeviceDriverHardDrive.unloadProcess = function(params) {
 
 // Erases the disk
 DeviceDriverHardDrive.formatDisk = function() {
+    // If there are any running processes on the disk, we don't format
     for (var i = 0; i < CpuScheduler.readyQueue.getSize(); i++) {
         var process = CpuScheduler.readyQueue.dequeue();
         CpuScheduler.readyQueue.enqueue(process);
@@ -167,8 +168,17 @@ DeviceDriverHardDrive.formatDisk = function() {
         }
     }
     
+    // Remove the the processes that are not executing but on the disk
+    for (var key in ProcessManager.processControlBlocks) {
+        var process = ProcessManager.processControlBlocks[key];
+        if (process.state === ProcessControlBlock.State.NEW && !process.inMemory) {
+            ProcessManager.unload(process);
+        }
+    }
+
+    // Format the disk
     HardDriveManager.initialize();
-    Kernel.stdIn.handleResponse("Format successful");
+    Kernel.stdIn.handleResponse("Format successful");   
 };
 
 // Checks if the filename has a .swp extension (users cannot modify or create .swp files)
