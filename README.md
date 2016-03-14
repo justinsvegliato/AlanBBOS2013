@@ -1,2 +1,1 @@
-SvegOS
-To be determined
+# sveg-os
